@@ -1,0 +1,37 @@
+--- PKGBUILD-bk	2016-11-28 19:56:24.000000000 +0300
++++ PKGBUILD	2016-11-28 20:10:01.752666680 +0300
+@@ -11,7 +11,7 @@
+ arch=('i686' 'x86_64')
+ url='http://pawsa.fedorapeople.org/balsa/'
+ license=('GPL')
+-depends=('gmime' 'webkitgtk' 'libesmtp' 'libnotify' 'gpgme' 'gtksourceview3' 'gtkspell3' 'desktop-file-utils')
++depends=('gmime' 'libesmtp' 'gpgme' 'gtksourceview3' 'desktop-file-utils')
+ makedepends=('yelp-tools' 'intltool')
+ changelog=$pkgname.changelog
+ source=(http://pawsa.fedorapeople.org/${pkgname}/${pkgname}-${pkgver}.tar.bz2)
+@@ -19,7 +19,8 @@
+ 
+ build() {
+   cd "${srcdir}"/$pkgname-$pkgver
+-
++patch -p1 -i ../../no-spell.patch
++autoreconf
+   ./configure --prefix=/usr \
+       --sysconfdir=/etc \
+       --localstatedir=/var \
+@@ -28,12 +29,12 @@
+       --with-gss \
+       --with-ldap \
+       --with-gtksourceview \
+-      --with-gtkspell \
++      --with-gtkspell=no \
+       --with-rubrica \
+       --with-sqlite \
+       --without-nm \
+-      --without-gnome \
+-      --with-html-widget=webkit
++      --without-gnome --with-libnotify=no \
++      --with-html-widget=gtkhtml4
+   make
+ }
+ 

@@ -1,0 +1,506 @@
+diff -Naur gtkhtml-bk/components/editor/gtkhtml-spell-checker.c gtkhtml-4.10.0/components/editor/gtkhtml-spell-checker.c
+--- gtkhtml-bk/components/editor/gtkhtml-spell-checker.c	2013-12-14 01:58:33.000000000 +0400
++++ gtkhtml-4.10.0/components/editor/gtkhtml-spell-checker.c	2016-10-28 23:48:35.000000000 +0300
+@@ -22,7 +22,6 @@
+ 
+ #include <string.h>
+ #include <glib/gi18n-lib.h>
+-#include <enchant.h>
+ 
+ #include "gtkhtml-spell-marshal.h"
+ 
+@@ -39,8 +38,6 @@
+ };
+ 
+ struct _GtkhtmlSpellCheckerPrivate {
+-	EnchantDict *dict;
+-	EnchantBroker *broker;
+ 	const GtkhtmlSpellLanguage *language;
+ };
+ 
+@@ -76,51 +73,11 @@
+ 	return TRUE;
+ }
+ 
+-static EnchantDict *
+-spell_checker_request_dict (GtkhtmlSpellChecker *checker)
+-{
+-	GtkhtmlSpellCheckerPrivate *priv;
+-	const gchar *code;
+-
+-	/* Loading a dictionary is time-consuming, so delay it until we
+-	 * really need it.  The assumption being that the dictionary
+-	 * for a particular GtkhtmlSpellChecker instance will only
+-	 * occasionally be needed.  That way we can create as many
+-	 * instances as we want without a huge performance penalty. */
+-
+-	priv = checker->priv;
+-
+-	if (priv->dict != NULL)
+-		return priv->dict;
+-
+-	if (priv->language == NULL)
+-		return NULL;
+-
+-	code = gtkhtml_spell_language_get_code (priv->language);
+-	priv->dict = enchant_broker_request_dict (priv->broker, code);
+-
+-	if (priv->dict == NULL) {
+-		priv->language = NULL;
+-		g_warning ("Cannot load the dictionary for %s", code);
+-	}
+-
+-	return priv->dict;
+-}
+-
+ static GObject *
+ spell_checker_constructor (GType type,
+                            guint n_construct_properties,
+                            GObjectConstructParam *construct_properties)
+ {
+-	GObject *object;
+-
+-	/* Chain up to parent's constructor() method. */
+-	object = G_OBJECT_CLASS (parent_class)->constructor (
+-		type, n_construct_properties, construct_properties);
+-
+-	gtkhtml_spell_checker_clear_session (GTKHTML_SPELL_CHECKER (object));
+-
+-	return object;
+ }
+ 
+ static void
+@@ -129,17 +86,6 @@
+                             const GValue *value,
+                             GParamSpec *pspec)
+ {
+-	GtkhtmlSpellCheckerPrivate *priv;
+-
+-	priv = GTKHTML_SPELL_CHECKER (object)->priv;
+-
+-	switch (property_id) {
+-		case PROP_LANGUAGE:
+-			priv->language = g_value_get_boxed (value);
+-			return;
+-	}
+-
+-	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+ }
+ 
+ static void
+@@ -148,141 +94,37 @@
+                             GValue *value,
+                             GParamSpec *pspec)
+ {
+-	switch (property_id) {
+-		case PROP_LANGUAGE:
+-			g_value_set_boxed (
+-				value, gtkhtml_spell_checker_get_language (
+-				GTKHTML_SPELL_CHECKER (object)));
+-			return;
+-	}
+-
+-	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+ }
+ 
+ static void
+ spell_checker_finalize (GObject *object)
+ {
+-	GtkhtmlSpellCheckerPrivate *priv;
+-
+-	priv = GTKHTML_SPELL_CHECKER (object)->priv;
+-
+-	if (priv->dict != NULL)
+-		enchant_broker_free_dict (priv->broker, priv->dict);
+-	enchant_broker_free (priv->broker);
+-
+-	/* Chain up to parent's finalize() method. */
+-	G_OBJECT_CLASS (parent_class)->finalize (object);
+ }
+ 
+ static void
+ spell_checker_class_init (GtkhtmlSpellCheckerClass *class)
+ {
+-	GObjectClass *object_class;
+-
+-	parent_class = g_type_class_peek_parent (class);
+-	g_type_class_add_private (class, sizeof (GtkhtmlSpellCheckerPrivate));
+-
+-	object_class = G_OBJECT_CLASS (class);
+-	object_class->constructor = spell_checker_constructor;
+-	object_class->set_property = spell_checker_set_property;
+-	object_class->get_property = spell_checker_get_property;
+-	object_class->finalize = spell_checker_finalize;
+-
+-	g_object_class_install_property (
+-		object_class,
+-		PROP_LANGUAGE,
+-		g_param_spec_boxed (
+-			"language",
+-			"Language",
+-			"The language used by the spell checker",
+-			GTKHTML_TYPE_SPELL_LANGUAGE,
+-			G_PARAM_CONSTRUCT_ONLY |
+-			G_PARAM_READWRITE));
+-
+-	signals[ADDED] = g_signal_new (
+-		"added",
+-		G_OBJECT_CLASS_TYPE (object_class),
+-		G_SIGNAL_RUN_LAST,
+-		G_STRUCT_OFFSET (
+-		GtkhtmlSpellCheckerClass, added),
+-		NULL, NULL,
+-		gtkhtml_spell_marshal_VOID__STRING_INT,
+-		G_TYPE_NONE, 2,
+-		G_TYPE_STRING,
+-		G_TYPE_INT);
+-
+-	signals[ADDED_TO_SESSION] = g_signal_new (
+-		"added-to-session",
+-		G_OBJECT_CLASS_TYPE (object_class),
+-		G_SIGNAL_RUN_LAST,
+-		G_STRUCT_OFFSET (
+-		GtkhtmlSpellCheckerClass, added_to_session),
+-		NULL, NULL,
+-		gtkhtml_spell_marshal_VOID__STRING_INT,
+-		G_TYPE_NONE, 2,
+-		G_TYPE_STRING,
+-		G_TYPE_INT);
+-
+-	signals[SESSION_CLEARED] = g_signal_new (
+-		"session-cleared",
+-		G_OBJECT_CLASS_TYPE (object_class),
+-		G_SIGNAL_RUN_LAST,
+-		G_STRUCT_OFFSET (
+-		GtkhtmlSpellCheckerClass, session_cleared),
+-		NULL, NULL,
+-		g_cclosure_marshal_VOID__VOID,
+-		G_TYPE_NONE, 0);
+ }
+ 
+ static void
+ spell_checker_init (GtkhtmlSpellChecker *checker)
+ {
+-	checker->priv = G_TYPE_INSTANCE_GET_PRIVATE (
+-		checker, GTKHTML_TYPE_SPELL_CHECKER,
+-		GtkhtmlSpellCheckerPrivate);
+-
+-	checker->priv->broker = enchant_broker_init ();
+ }
+ 
+ GType
+ gtkhtml_spell_checker_get_type (void)
+ {
+ 	static GType type = 0;
+-
+-	if (G_UNLIKELY (type == 0)) {
+-		static const GTypeInfo type_info = {
+-			sizeof (GtkhtmlSpellCheckerClass),
+-			(GBaseInitFunc) NULL,
+-			(GBaseFinalizeFunc) NULL,
+-			(GClassInitFunc) spell_checker_class_init,
+-			(GClassFinalizeFunc) NULL,
+-			NULL,  /* class_data */
+-			sizeof (GtkhtmlSpellChecker),
+-			0,     /* n_preallocs */
+-			(GInstanceInitFunc) spell_checker_init,
+-			NULL   /* value_table */
+-		};
+-
+-		type = g_type_register_static (
+-			G_TYPE_OBJECT, "GtkhtmlSpellChecker", &type_info, 0);
+-	}
+-
+-	return type;
+ }
+ 
+ GtkhtmlSpellChecker *
+ gtkhtml_spell_checker_new (const GtkhtmlSpellLanguage *language)
+ {
+-	return g_object_new (
+-		GTKHTML_TYPE_SPELL_CHECKER, "language", language, NULL);
+ }
+ 
+ const GtkhtmlSpellLanguage *
+ gtkhtml_spell_checker_get_language (GtkhtmlSpellChecker *checker)
+ {
+-	g_return_val_if_fail (GTKHTML_IS_SPELL_CHECKER (checker), NULL);
+-
+-	return checker->priv->language;
+ }
+ 
+ gboolean
+@@ -290,33 +132,7 @@
+                                   const gchar *word,
+                                   gssize length)
+ {
+-	EnchantDict *dict;
+-	gint result;
+-
+-	g_return_val_if_fail (GTKHTML_IS_SPELL_CHECKER (checker), FALSE);
+-	g_return_val_if_fail (word != NULL, FALSE);
+-
+-	if ((dict = spell_checker_request_dict (checker)) == NULL)
+-		return FALSE;
+-
+-	if (length < 0)
+-		length = strlen (word);
+-
+-	if (spell_checker_is_digit (word, length))
+-		return TRUE;
+-
+-	/* Exclude apostrophies from the end of words. */
+-	while (word[length - 1] == '\'')
+-		length--;
+-
+-	result = enchant_dict_check (dict, word, length);
+-
+-	if (result < 0)
+-		g_warning (
+-			"Error checking word '%s' (%s)",
+-			word, enchant_dict_get_error (dict));
+-
+-	return (result == 0);
++	return TRUE;
+ }
+ 
+ GList *
+@@ -324,24 +140,8 @@
+                                        const gchar *word,
+                                        gssize length)
+ {
+-	EnchantDict *dict;
+-	gchar **suggestions;
+-	gsize n_suggestions = 0;
+ 	GList *list = NULL;
+ 
+-	g_return_val_if_fail (GTKHTML_IS_SPELL_CHECKER (checker), NULL);
+-
+-	if ((dict = spell_checker_request_dict (checker)) == NULL)
+-		return NULL;
+-
+-	suggestions = enchant_dict_suggest (
+-		dict, word, length, &n_suggestions);
+-
+-	while (n_suggestions > 0)
+-		list = g_list_prepend (list, suggestions[--n_suggestions]);
+-
+-	g_free (suggestions);
+-
+ 	return list;
+ }
+ 
+@@ -352,15 +152,6 @@
+                                          const gchar *replacement,
+                                          gssize replacement_length)
+ {
+-	EnchantDict *dict;
+-
+-	g_return_if_fail (GTKHTML_IS_SPELL_CHECKER (checker));
+-
+-	if ((dict = spell_checker_request_dict (checker)) == NULL)
+-		return;
+-
+-	enchant_dict_store_replacement (
+-		dict, word, word_length, replacement, replacement_length);
+ }
+ 
+ void
+@@ -368,15 +159,6 @@
+                                 const gchar *word,
+                                 gssize length)
+ {
+-	EnchantDict *dict;
+-
+-	g_return_if_fail (GTKHTML_IS_SPELL_CHECKER (checker));
+-
+-	if ((dict = spell_checker_request_dict (checker)) == NULL)
+-		return;
+-
+-	enchant_dict_add_to_pwl (dict, word, length);
+-	g_signal_emit (G_OBJECT (checker), signals[ADDED], 0, word, length);
+ }
+ 
+ void
+@@ -384,46 +166,15 @@
+                                            const gchar *word,
+                                            gssize length)
+ {
+-	EnchantDict *dict;
+-
+-	g_return_if_fail (GTKHTML_IS_SPELL_CHECKER (checker));
+-
+-	if ((dict = spell_checker_request_dict (checker)) == NULL)
+-		return;
+-
+-	enchant_dict_add_to_session (dict, word, length);
+-	g_signal_emit (G_OBJECT (checker), signals[ADDED_TO_SESSION], 0, word, length);
+ }
+ 
+ void
+ gtkhtml_spell_checker_clear_session (GtkhtmlSpellChecker *checker)
+ {
+-	GtkhtmlSpellCheckerPrivate *priv;
+-
+-	g_return_if_fail (GTKHTML_IS_SPELL_CHECKER (checker));
+-
+-	priv = checker->priv;
+-
+-	if (priv->dict != NULL) {
+-		enchant_broker_free_dict (priv->broker, priv->dict);
+-		priv->dict = NULL;
+-	}
+-
+-	if (priv->language == NULL)
+-		priv->language = gtkhtml_spell_language_lookup (NULL);
+-
+-	g_signal_emit (G_OBJECT (checker), signals[SESSION_CLEARED], 0);
+ }
+ 
+ gint
+ gtkhtml_spell_checker_compare (GtkhtmlSpellChecker *checker_a,
+                                GtkhtmlSpellChecker *checker_b)
+ {
+-	const GtkhtmlSpellLanguage *language_a;
+-	const GtkhtmlSpellLanguage *language_b;
+-
+-	language_a = gtkhtml_spell_checker_get_language (checker_a);
+-	language_b = gtkhtml_spell_checker_get_language (checker_b);
+-
+-	return gtkhtml_spell_language_compare (language_a, language_b);
+ }
+diff -Naur gtkhtml-bk/components/editor/gtkhtml-spell-language.c gtkhtml-4.10.0/components/editor/gtkhtml-spell-language.c
+--- gtkhtml-bk/components/editor/gtkhtml-spell-language.c	2013-12-14 01:58:33.000000000 +0400
++++ gtkhtml-4.10.0/components/editor/gtkhtml-spell-language.c	2016-10-28 23:51:30.000000000 +0300
+@@ -22,7 +22,6 @@
+ 
+ #include <string.h>
+ #include <glib/gi18n-lib.h>
+-#include <enchant.h>
+ 
+ #define ISO_639_DOMAIN	"iso_639"
+ #define ISO_3166_DOMAIN	"iso_3166"
+@@ -355,55 +354,6 @@
+ {
+ 	static gboolean initialized = FALSE;
+ 	static GList *available_languages = NULL;
+-	EnchantBroker *broker;
+-	GTree *tree;
+-
+-	if (initialized)
+-		return available_languages;
+-
+-	initialized = TRUE;
+-
+-#if defined (ENABLE_NLS) && defined (HAVE_ISO_CODES)
+-	bindtextdomain (ISO_639_DOMAIN, ISOCODESLOCALEDIR);
+-	bind_textdomain_codeset (ISO_639_DOMAIN, "UTF-8");
+-
+-	bindtextdomain (ISO_3166_DOMAIN, ISOCODESLOCALEDIR);
+-	bind_textdomain_codeset (ISO_3166_DOMAIN, "UTF-8");
+-#endif
+-
+-	iso_639_table = g_hash_table_new_full (
+-		g_str_hash, g_str_equal,
+-		(GDestroyNotify) g_free,
+-		(GDestroyNotify) g_free);
+-
+-	iso_3166_table = g_hash_table_new_full (
+-		g_str_hash, g_str_equal,
+-		(GDestroyNotify) g_free,
+-		(GDestroyNotify) g_free);
+-
+-#ifdef HAVE_ISO_CODES
+-	iso_codes_parse (&iso_639_parser, "iso_639.xml", iso_639_table);
+-	iso_codes_parse (&iso_3166_parser, "iso_3166.xml", iso_3166_table);
+-#endif
+-
+-	tree = g_tree_new_full (
+-		(GCompareDataFunc) strcmp, NULL,
+-		(GDestroyNotify) g_free,
+-		(GDestroyNotify) g_free);
+-
+-	broker = enchant_broker_init ();
+-	enchant_broker_list_dicts (
+-		broker, (EnchantDictDescribeFn)
+-		spell_language_dict_describe_cb, tree);
+-	enchant_broker_free (broker);
+-
+-	g_tree_foreach (
+-		tree, (GTraverseFunc)
+-		spell_language_traverse_cb,
+-		&available_languages);
+-
+-	g_tree_destroy (tree);
+-
+ 	return available_languages;
+ }
+ 
+@@ -411,55 +361,27 @@
+ spell_language_pick_default (void)
+ {
+ 	const GtkhtmlSpellLanguage *language = NULL;
+-	const gchar * const *language_names;
+-	const GList *available_languages;
+-	gint ii;
+-
+-	language_names = g_get_language_names ();
+-	available_languages = gtkhtml_spell_language_get_available ();
+-
+-	for (ii = 0; language == NULL && language_names[ii] != NULL; ii++)
+-		language = spell_language_lookup (language_names[ii]);
+-
+-	if (language == NULL)
+ 		language = spell_language_lookup ("en_US");
+-
+-	if (language == NULL && available_languages != NULL)
+-		language = available_languages->data;
+-
+-	return language;
+ }
+ 
+ const GtkhtmlSpellLanguage *
+ gtkhtml_spell_language_lookup (const gchar *language_code)
+ {
+ 	const GtkhtmlSpellLanguage *language = NULL;
+-
+-	language = spell_language_lookup (language_code);
+-
+-	if (language == NULL)
+ 		language = spell_language_pick_default ();
+-
+-	return language;
+ }
+ 
+ const gchar *
+ gtkhtml_spell_language_get_code (const GtkhtmlSpellLanguage *language)
+ {
+-	g_return_val_if_fail (language != NULL, NULL);
+-
+-	return language->code;
+ }
+ 
+ const gchar *
+ gtkhtml_spell_language_get_name (const GtkhtmlSpellLanguage *language)
+ {
+-	if (language == NULL)
+ 		 /* Translators: This refers to the default language used
+ 		 * by the spell checker. */
+ 		return C_("language", "Default");
+-
+-	return language->name;
+ }
+ 
+ gint
+diff -Naur gtkhtml-bk/configure gtkhtml-4.10.0/configure
+--- gtkhtml-bk/configure	2015-09-21 11:50:28.000000000 +0300
++++ gtkhtml-4.10.0/configure	2016-10-28 23:39:54.000000000 +0300
+@@ -18553,7 +18553,7 @@
+ 
+ 
+ 
+-GTKHTML_MODULES="gtk+-3.0 >= 3.2.0 enchant >= 1.1.7 gsettings-desktop-schemas iso-codes cairo >= 1.10.0"
++GTKHTML_MODULES="gtk+-3.0 >= 3.2.0  gsettings-desktop-schemas iso-codes cairo >= 1.10.0"
+ 
+ pkg_failed=no
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTKHTML" >&5

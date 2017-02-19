@@ -1,0 +1,13 @@
+--- PKGBUILD-bk	2016-11-01 10:30:38.104510187 +0300
++++ PKGBUILD	2016-11-01 10:34:13.284507512 +0300
+@@ -8,8 +8,8 @@
+ pkgdesc="High-level device independent layer for speech synthesis interface"
+ url="http://www.freebsoft.org/speechd"
+ license=('GPL2' 'FDL')
+-depends=('libltdl' 'python-xdg' 'dotconf' 'libpulse' 'libao')
+-makedepends=('intltool' 'espeak')
++depends=('libltdl' 'python-xdg' 'dotconf' 'libsndfile')
++makedepends=('intltool')
+ optdepends=('festival: Speech output using Festival'
+             'espeak: Speech output using ESpeak'
+             'pulseaudio: PulseAudio support')

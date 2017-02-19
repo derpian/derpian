@@ -1,0 +1,37 @@
+--- PKGBUILD	2017-02-15 17:20:03.000000000 +0300
++++ PKGBUILD	2017-02-15 17:19:46.728590724 +0300
+@@ -8,13 +8,9 @@
+ arch=(i686 x86_64)
+ url="https://webkitgtk.org/"
+ license=(custom)
+-depends=(libxt libxslt enchant geoclue2 gst-plugins-base-libs
+-         libsecret libwebp harfbuzz-icu gtk3 libnotify hyphen)
+-makedepends=(gtk2 gperf gobject-introspection ruby gtk-doc cmake python python2)
+-optdepends=('gtk2: Netscape plugin support'
+-            'gst-plugins-base: free media decoding'
+-            'gst-plugins-good: media decoding'
+-            'gst-libav: nonfree media decoding')
++depends=(libxt libxslt gst-plugins-base-libs
++         libsecret libwebp harfbuzz-icu gtk3 hyphen)
++makedepends=(gperf gobject-introspection ruby cmake python python2)
+ options=(!emptydirs)
+ source=(https://webkitgtk.org/releases/webkitgtk-${pkgver}.tar.xz{,.asc})
+ sha256sums=('d1ae2df51dd4ee44b9b89421a436ef71062816308738c3712ecf4bec3ccbe3ac'
+@@ -34,8 +30,16 @@
+   cd build
+   cmake -DPORT=GTK -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_SKIP_RPATH=ON -DCMAKE_INSTALL_PREFIX=/usr \
++      -DUSE_LIBHYPHEN=ON         \
++      -DENABLE_MINIBROWSER=ON     \
++      -DENABLE_PLUGIN_PROCESS_GTK2=OFF \
++      -DENABLE_GEOLOCATION=OFF \
++      -DENABLE_SPELLCHECK=OFF \
++      -DENABLE_WEB_AUDIO=ON \
++      -DENABLE_VIDEO=ON \
++      -DUSE_LIBNOTIFY=OFF -DUSE_SYSTEM_MALLOC=ON -DENABLE_JIT=OFF -DENABLE_INTROSPECTION=ON -DENABLE_GTKDOC=OFF \
+         -DLIB_INSTALL_DIR=/usr/lib -DLIBEXEC_INSTALL_DIR=/usr/lib/webkit2gtk-4.0 \
+-        -DENABLE_GTKDOC=ON -DPYTHON_EXECUTABLE=/usr/bin/python2 ../webkitgtk-$pkgver
++        -DENABLE_GTKDOC=OFF -DPYTHON_EXECUTABLE=/usr/bin/python2 ../webkitgtk-$pkgver
+   make
+ }
+ 

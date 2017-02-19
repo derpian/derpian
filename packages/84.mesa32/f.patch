@@ -1,0 +1,13 @@
+--- PKGBUILD-bk	2017-02-17 14:35:17.000000000 +0300
++++ PKGBUILD	2017-02-17 15:04:36.405797756 +0300
+@@ -170,6 +170,10 @@
+   # libglvnd support
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/libGLX_mesa.so* ${pkgdir}/usr/lib32/ || echo ok
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/libEGL_mesa.so* ${pkgdir}/usr/lib32/ || echo ok
++  
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libGL.so* ${pkgdir}/usr/lib32/mesa/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libEGL.so* ${pkgdir}/usr/lib32/mesa/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libGLES*.so* ${pkgdir}/usr/lib32/mesa/ || echo ok
+ 
+   install -m755 -d "${pkgdir}/usr/share/licenses/lib32-mesa"
+   install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/lib32-mesa/"

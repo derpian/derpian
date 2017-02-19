@@ -1,0 +1,24 @@
+--- PKGBUILD	2016-10-19 16:46:35.000000000 +0300
++++ PKGBUILDok	2016-10-19 16:46:23.948198149 +0300
+@@ -7,8 +7,8 @@
+ pkgdesc="A library for layout and rendering of text"
+ arch=('i686' 'x86_64')
+ license=('LGPL')
+-depends=('libthai' 'cairo' 'libxft' 'harfbuzz')
+-makedepends=('harfbuzz' 'fontconfig' 'cairo' 'libxft' 'libthai' 'gobject-introspection' 'help2man'
++depends=('cairo' 'libxft' 'harfbuzz')
++makedepends=('harfbuzz' 'fontconfig' 'cairo' 'libxft' 'gobject-introspection' 'help2man'
+              'gtk-doc')
+ checkdepends=('ttf-dejavu')
+ source=(http://download.gnome.org/sources/${pkgname}/${pkgver:0:4}/${pkgname}-${pkgver}.tar.xz)
+@@ -22,8 +22,9 @@
+ 
+ build() {
+   cd ${pkgname}-${pkgver}
++sed -i 's|LIBTHAI_REQUIRED_VERSION=0|LIBTHAI_REQUIRED_VERSION=99|g' configure
+   ./configure --prefix=/usr --sysconfdir=/etc \
+-      --localstatedir=/var --enable-gtk-doc
++      --localstatedir=/var --disable-gtk-doc
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+   make
+ }

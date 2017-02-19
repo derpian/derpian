@@ -1,0 +1,24 @@
+--- PKGBUILD.orig	2017-02-15 16:47:42.648574262 +0300
++++ PKGBUILD	2017-02-15 16:50:17.888575590 +0300
+@@ -8,8 +8,8 @@
+ url="https://www.pango.org/"
+ arch=(i686 x86_64)
+ license=(LGPL)
+-depends=(libthai cairo libxft harfbuzz)
+-makedepends=(harfbuzz fontconfig cairo libxft libthai gobject-introspection help2man gtk-doc git)
++depends=(cairo libxft harfbuzz)
++makedepends=(harfbuzz fontconfig cairo libxft gobject-introspection help2man gtk-doc git)
+ checkdepends=(ttf-dejavu)
+ _commit=e9471764d19f740f756cf7e6d11aba0cbba3d2ae  # tags/1.40.3^0
+ source=("git+https://git.gnome.org/browse/pango#commit=$_commit")
+@@ -27,8 +27,9 @@
+ 
+ build() {
+   cd $pkgname
++  sed -i 's|LIBTHAI_REQUIRED_VERSION=0|LIBTHAI_REQUIRED_VERSION=99|g' configure
+   ./configure --prefix=/usr --sysconfdir=/etc \
+-      --localstatedir=/var --enable-gtk-doc
++      --localstatedir=/var --disable-gtk-doc
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+   make
+ }

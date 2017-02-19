@@ -1,0 +1,117 @@
+--- PKGBUILD	2017-02-16 12:13:42.000000000 +0300
++++ PKGBUILD-ok	2017-02-16 12:13:16.297339435 +0300
+@@ -6,8 +6,6 @@
+ # Note: These are for Arch Linux use ONLY. For your own distribution, please
+ # get your own set of keys. Feel free to contact foutrelis@archlinux.org for
+ # more information.
+-_google_default_client_id=413772536636.apps.googleusercontent.com
+-_google_default_client_secret=0ZChLK6AxeA3Isu96MkwqDR4
+ 
+ pkgbase=libreoffice-fresh
+ pkgname=('libreoffice-fresh-sdk' 'libreoffice-fresh')
+@@ -22,12 +20,12 @@
+ 	'libxslt' 'redland' 'hyphen' 'lpsolve' 'gcc-libs' 'sh' 'graphite' 'icu' 
+ 	'lcms2' 'poppler>=0.24.0' 'libvisio' 'libetonyek' 'libodfgen' 'libcdr'
+ 	'libmspub' 'harfbuzz-icu' 'glew' 'nss' 'clucene' 'hicolor-icon-theme'
+-	'desktop-file-utils' 'shared-mime-info' 'gtk2' 'gst-plugins-base-libs'
+-	'glu' 'sane' 'perl-archive-zip' 'zip' 'unzip' 'unixodbc' 'apache-ant'
+-	'gperf' 'kdelibs' 'gtk3' 'cppunit' 'beanshell' 'clucene' 
+-	'junit' 'libmythes' 'libwpg'  'java-environment' 'postgresql-libs' 'libgl'
+-	'bluez-libs' 'gdb' 'doxygen'  'libatomic_ops' 'mdds' 'glew'
+-	'apr' 'serf' 'ttf-liberation' 'glm' 'libxinerama' 'libpagemaker'
++	'desktop-file-utils' 'shared-mime-info' 'gtk3' 'gst-plugins-base-libs'
++	'glu' 'perl-archive-zip' 'zip' 'unzip' 'apache-ant'
++	'gperf' 'gtk3' 'cppunit'  'clucene' 
++	'junit' 'libmythes' 'libwpg'  'java-environment' 'libgl'
++	'libatomic_ops' 'mdds' 'glew'
++	'ttf-liberation' 'glm' 'libxinerama' 'libpagemaker'
+ 	'libabw' 'libmwaw' 'libe-book' 'coin-or-mp' 'liblangtag' 'liborcus' 
+ 	'libexttextcat' 'libcmis' 'gobject-introspection' #'libfbclient'
+ 	'libtommath' 'libzmf')
+@@ -175,8 +173,10 @@
+ 	# strip -s from Makeflags in case you use it to shorten build logs
+ 	_MAKEFLAGS=${MAKEFLAGS/-s/}
+ 	
++	sed -i "s|SAL_DLLPUBLIC_EXPORT|//SAL_DLLPUBLIC_EXPORT|g" sfx2/source/bastyp/dummytypes.cxx
++
+ 	./autogen.sh --with-build-version="${pkgver}-${pkgrel}" \
+-		--with-vendor="Arch Linux" \
++		--with-vendor="Linux" \
+ 		--enable-split-app-modules \
+ 		--with-parallelism=${_MAKEFLAGS/-j/} \
+ 		--with-external-tar="${srcdir}/ext_sources" \
+@@ -188,9 +188,9 @@
+ 		--with-help \
+ 		--disable-avahi \
+ 		--enable-dbus \
+-		--enable-evolution2\
+-		--enable-gio\
+-		--enable-kde4\
++		--disable-evolution2\
++		--disable-gio\
++		--disable-kde4\
+ 		--enable-gtk3 \
+ 		--enable-introspection \
+ 		--disable-gstreamer-0-10 \
+@@ -198,14 +198,14 @@
+ 		--enable-odk\
+ 		--enable-orcus \
+ 		--enable-python=system \
+-		--enable-scripting-beanshell \
++		--disable-scripting-beanshell \
+ 		--enable-scripting-javascript \
+ 		--disable-telepathy \
+ 		--disable-dconf \
+ 		--enable-ext-wiki-publisher \
+ 		--enable-ext-nlpsolver \
+ 		--without-fonts\
+-		--with-system-apr \
++		--without-system-apr \
+ 		--with-system-libcdr \
+ 		--with-system-mdds\
+ 		--without-myspell-dicts \
+@@ -232,14 +232,12 @@
+ 		--with-external-dict-dir=/usr/share/hunspell \
+ 		--with-external-hyph-dir=/usr/share/hyphen \
+ 		--with-external-thes-dir=/usr/share/mythes \
+-		--with-system-beanshell \
+ 		--with-system-cppunit\
+ 		--with-system-graphite\
+ 		--with-system-glew \
+ 		--with-system-glm \
+ 		--with-system-libwpg \
+ 		--with-system-libwps \
+-		--with-system-redland\
+ 		--with-system-libzmf \
+ 		--without-system-libstaroffice \
+ 		--with-system-serf \
+@@ -254,11 +252,17 @@
+ 		--without-system-hsqldb \
+ 		--with-alloc=system \
+ 		--with-system-clucene \
+-		--with-gdrive-client-id=${_google_default_client_id} \
+-		--with-gdrive-client-secret=${_google_default_client_secret} \
+-		--disable-dependency-tracking
++		--disable-dependency-tracking \
++		--without-system-odbc \
++		--without-system-sane \
++		--with-system-hunspell \
++		--disable-sdremote-bluetooth \
++		--disable-firebird-sdbc \
++		--enable-avmedia \
++		--without-doxygen --disable-postgresql-sdbc --disable-gtk
+ 
+ 	touch src.downloaded
++	sed -i 's|exit 1;|echo 1;|g' Makefile
+ 	make build
+ 
+ 	mkdir ${srcdir}/fakeinstall
+@@ -307,7 +311,7 @@
+ 		'libmspub' 'harfbuzz-icu' 'glew' 'nss' 'clucene' 'hicolor-icon-theme'
+ 		'desktop-file-utils' 'shared-mime-info' 'glu' 'libpagemaker'
+ 		'libxinerama' 'libabw' 'libmwaw' 'libe-book' 'libcups'
+-		'liblangtag' 'libexttextcat' 'libfbclient' 'libcmis' 'liborcus'
++		'liblangtag' 'libexttextcat' 'libcmis' 'liborcus'
+ 		'libtommath' 'libzmf' 'libatomic_ops')
+ 	optdepends=('java-runtime:     adds java support'
+ 		'java-environment: required by extension-wiki-publisher and extension-nlpsolver'

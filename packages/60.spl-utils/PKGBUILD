@@ -1,0 +1,53 @@
+# Maintainer: Antergos Developers <dev@antergos.com>
+# Contributor: isiachi <isiachi@rhyeworld.it>
+
+pkgname='spl-utils'
+_pkgver=0.6.5.8
+_rev=964
+_kern=4.8.2_1
+pkgver="${_pkgver}.r${_rev}.${_kern}"
+pkgrel=1
+license=('CDDL')
+pkgdesc="Kernel module support files for the Solaris Porting Layer."
+groups=("system" "zfs")
+depends=("dkms")
+provides=("spl-utils" "spl-utils-dkms")
+conflicts=("spl-utils-dkms" "spl-utils-lts" "spl-utils-git")
+makedepends=("git")
+arch=("i686" "x86_64")
+url="http://zfsonlinux.org/"
+_commit="${_pkgver}"
+source=("${pkgname}::https://github.com/zfsonlinux/spl/archive/spl-${_pkgver}.zip")
+md5sums=('3b98916ba77f91725252345dc5ff0788')
+
+
+#pkgver() {
+#	local _kernel='4.5.4_1'
+#    cd "${srcdir}/spl"
+#    printf "%s.r%s_%s" "${_pkgver}" "$(git rev-list --count HEAD)" "${_kernel}"
+#    
+#}
+
+build() {
+    cd "${srcdir}/spl-spl-${_commit}"
+    ./autogen.sh
+    
+    _at_enable=""
+    [ "${CARCH}" == "i686"  ] && _at_enable="--enable-atomic-spinlocks"
+
+    ./configure --prefix=/usr \
+                --libdir=/usr/lib \
+                --sbindir=/usr/bin \
+                --with-config=user \
+                ${_at_enable}
+
+    make
+}
+
+package() {
+    cd "${srcdir}/spl-spl-${_commit}"
+    make DESTDIR="${pkgdir}" install
+    #install -D -m644 "${srcdir}"/spl-utils.hostid "${pkgdir}"/etc/hostid
+}
+
+# -*- mode: bash;-*-

@@ -1,0 +1,13 @@
+--- PKGBUILD.orig	2017-01-12 16:19:52.660655919 +0300
++++ PKGBUILD	2017-01-12 16:21:41.480654565 +0300
+@@ -11,8 +11,8 @@
+ license=(MPL GPL LGPL)
+ url="https://www.mozilla.org/firefox/"
+ depends=(gtk3 gtk2 mozilla-common libxt startup-notification mime-types dbus-glib alsa-lib ffmpeg
+-         libvpx libevent nss hunspell sqlite ttf-font icu)
+-makedepends=(unzip zip diffutils python2 yasm mesa imake gconf libpulse inetutils xorg-server-xvfb
++         libvpx libevent nss sqlite ttf-font icu)
++makedepends=(unzip zip diffutils python2 yasm mesa imake inetutils xorg-server-xvfb
+              autoconf2.13 cargo)
+ optdepends=('networkmanager: Location detection via available WiFi networks'
+             'libnotify: Notification integration'

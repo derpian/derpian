@@ -1,0 +1,10 @@
+--- PKGBUILD	2015-12-15 18:27:17.000000000 +0300
++++ PKGBUILD	2017-02-01 22:46:08.620520568 +0300
+@@ -15,6 +15,7 @@
+ 
+ build() {
+   cd "${srcdir}/$pkgname"
++  sed -i "s/false/true/g" net.connman.gtk.gschema.xml
+   ./autogen.sh
+   ./configure \
+     --bindir=/usr/bin \

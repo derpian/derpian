@@ -1,0 +1,38 @@
+--- PKGBUILD-bk	2017-02-17 07:21:24.000000000 +0300
++++ PKGBUILD	2017-02-17 07:26:05.656236448 +0300
+@@ -78,7 +78,7 @@
+     --enable-gallium-llvm \
+     --enable-llvm-shared-libs \
+     --enable-shared-glapi \
+-    --enable-libglvnd \
++    --disable-libglvnd --enable-opengl \
+     --enable-glx-tls \
+     --enable-egl \
+     --enable-glx \
+@@ -157,19 +157,19 @@
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/d3d  ${pkgdir}/usr/lib32
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/lib{gbm,glapi}.so* ${pkgdir}/usr/lib32/
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/libOSMesa.so* ${pkgdir}/usr/lib32/
+-  cp -rv ${srcdir}/fakeinstall/usr/lib32/libwayland*.so* ${pkgdir}/usr/lib32/
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libwayland*.so* ${pkgdir}/usr/lib32/ || echo ok
+ 
+   cp -rv ${srcdir}/fakeinstall/usr/lib32/pkgconfig ${pkgdir}/usr/lib32/
+ 
+-  #install -m755 -d ${pkgdir}/usr/lib32/mesa
++  install -m755 -d ${pkgdir}/usr/lib32/mesa
+   # move libgl/EGL/glesv*.so to not conflict with blobs - may break .pc files ?
+-  #mv -v ${pkgdir}/usr/lib32/libGL.so*    ${pkgdir}/usr/lib32/mesa/
+-  #mv -v ${pkgdir}/usr/lib32/libEGL.so*   ${pkgdir}/usr/lib32/mesa/
+-  #mv -v ${pkgdir}/usr/lib32/libGLES*.so* ${pkgdir}/usr/lib32/mesa/
++  mv -v ${pkgdir}/usr/lib32/libGL.so*    ${pkgdir}/usr/lib32/mesa/ || echo ok
++  mv -v ${pkgdir}/usr/lib32/libEGL.so*   ${pkgdir}/usr/lib32/mesa/ || echo ok
++  mv -v ${pkgdir}/usr/lib32/libGLES*.so* ${pkgdir}/usr/lib32/mesa/ || echo ok
+ 
+   # libglvnd support
+-  cp -rv ${srcdir}/fakeinstall/usr/lib32/libGLX_mesa.so* ${pkgdir}/usr/lib32/
+-  cp -rv ${srcdir}/fakeinstall/usr/lib32/libEGL_mesa.so* ${pkgdir}/usr/lib32/
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libGLX_mesa.so* ${pkgdir}/usr/lib32/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib32/libEGL_mesa.so* ${pkgdir}/usr/lib32/ || echo ok
+ 
+   install -m755 -d "${pkgdir}/usr/share/licenses/lib32-mesa"
+   install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/lib32-mesa/"

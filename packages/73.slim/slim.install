@@ -1,0 +1,11 @@
+post_install() {
+  systemctl enable slim.service
+  sed -i "s/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g" /etc/locale.gen
+  sed -i "s/#ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/g" /etc/locale.gen
+  locale-gen
+  #ln -s /usr/lib/modules/4.8.8-pf /usr/lib/modules/4.8.8.0-1-ARCH
+}
+
+post_upgrade() {
+  post_install
+}

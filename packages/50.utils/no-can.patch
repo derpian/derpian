@@ -1,0 +1,87 @@
+diff -Naur mate-utils-bk/configure.ac mate-utils-1.16.0/configure.ac
+--- mate-utils-bk/configure.ac	2016-09-20 08:13:42.000000000 +0300
++++ mate-utils-1.16.0/configure.ac	2016-11-28 19:06:08.814027343 +0300
+@@ -62,7 +62,6 @@
+ GLIB_REQUIRED=2.36.0
+ GIO_REQUIRED=2.36.0
+ GIO_UNIX_REQUIRED=2.18.0
+-LIBMATE_PANEL_APPLET_REQUIRED=1.7.0
+ LIBGTOP_REQUIRED=2.12.0
+ 
+ dnl GTK library version
+@@ -80,13 +79,9 @@
+ case "$with_gtk" in
+ 	2.0) GTK_API_VERSION=2.0
+ 		GTK_REQUIRED=2.24.0
+-		LIBCANBERRA_GTK_VERSION=libcanberra-gtk
+-		LIBCANBERRA_GTK_REQUIRED=0.4
+ 		;;
+ 	3.0) GTK_API_VERSION=3.0
+ 		GTK_REQUIRED=3.0.0
+-		LIBCANBERRA_GTK_VERSION=libcanberra-gtk3
+-		LIBCANBERRA_GTK_REQUIRED=0.4
+ 		;;
+ esac
+ AC_SUBST(GTK_API_VERSION)
+@@ -179,10 +174,6 @@
+ AC_SUBST(LIBGTOP_CFLAGS)
+ AC_SUBST(LIBGTOP_LIBS)
+ 
+-PKG_CHECK_MODULES(LIBCANBERRA_GTK, $LIBCANBERRA_GTK_VERSION >= $LIBCANBERRA_GTK_REQUIRED)
+-AC_SUBST(LIBCANBERRA_GTK_CFLAGS)
+-AC_SUBST(LIBCANBERRA_GTK_LIBS)
+-
+ dnl ***************************************************************
+ dnl Other miscellaneous checks
+ dnl ***************************************************************
+diff -Naur mate-utils-bk/mate-screenshot/src/mate-screenshot.c mate-utils-1.16.0/mate-screenshot/src/mate-screenshot.c
+--- mate-utils-bk/mate-screenshot/src/mate-screenshot.c	2016-08-31 17:28:16.000000000 +0300
++++ mate-utils-1.16.0/mate-screenshot/src/mate-screenshot.c	2016-11-28 19:15:10.167009625 +0300
+@@ -39,7 +39,6 @@
+ #include <gio/gio.h>
+ #include <pwd.h>
+ #include <X11/Xutil.h>
+-#include <canberra-gtk.h>
+ 
+ #include "screenshot-shadow.h"
+ #include "screenshot-utils.h"
+@@ -848,39 +847,6 @@
+ static void
+ play_sound_effect (GdkWindow *window)
+ {
+-  ca_context *c;
+-  ca_proplist *p = NULL;
+-  int res;
+-
+-  c = ca_gtk_context_get ();
+-
+-  res = ca_proplist_create (&p);
+-  if (res < 0)
+-    goto done;
+-
+-  res = ca_proplist_sets (p, CA_PROP_EVENT_ID, "screen-capture");
+-  if (res < 0)
+-    goto done;
+-
+-  res = ca_proplist_sets (p, CA_PROP_EVENT_DESCRIPTION, _("Screenshot taken"));
+-  if (res < 0)
+-    goto done;
+-
+-  if (window != NULL)
+-    {
+-      res = ca_proplist_setf (p,
+-                              CA_PROP_WINDOW_X11_XID,
+-                              "%lu",
+-                              (unsigned long) GDK_WINDOW_XID (window));
+-      if (res < 0)
+-        goto done;
+-    }
+-
+-  ca_context_play_full (c, 0, p, NULL, NULL);
+-
+- done:
+-  if (p != NULL)
+-    ca_proplist_destroy (p);
+ 
+ }
+ 

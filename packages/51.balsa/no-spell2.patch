@@ -1,0 +1,593 @@
+diff -Naur balsa-2.5.3/configure.ac balsa-ok/configure.ac
+--- balsa-2.5.3/configure.ac	2016-12-09 21:02:44.000000000 +0300
++++ balsa-ok/configure.ac	2017-01-25 13:37:52.063475127 +0300
+@@ -726,7 +726,6 @@
+     ;;
+     no)
+     AC_MSG_RESULT([configure enchant])
+-    PKG_CHECK_MODULES(SPELL, [ enchant ])
+     ;;
+     *)
+     AC_MSG_ERROR([bad option $use_spell_checker])
+diff -Naur balsa-2.5.3/src/sendmsg-window.c balsa-ok/src/sendmsg-window.c
+--- balsa-2.5.3/src/sendmsg-window.c	2016-12-09 21:02:44.000000000 +0300
++++ balsa-ok/src/sendmsg-window.c	2017-01-25 13:39:02.246807587 +0300
+@@ -67,9 +67,6 @@
+ #include "print.h"
+ #include "macosx-helpers.h"
+ 
+-#if !HAVE_GSPELL && !HAVE_GTKSPELL_3_0_3
+-#include <enchant/enchant.h>
+-#endif                          /* HAVE_GTKSPELL_3_0_3 */
+ #if HAVE_GTKSPELL
+ #include "gtkspell/gtkspell.h"
+ #elif HAVE_GSPELL
+@@ -4026,9 +4023,6 @@
+ #else
+     GList *lang_list, *l;
+ #endif                          /* HAVE_GSPELL */
+-#if !HAVE_GSPELL && !HAVE_GTKSPELL_3_0_3
+-    EnchantBroker *broker;
+-#endif                          /* HAVE_GTKSPELL_3_0_3 */
+     const gchar *preferred_lang;
+     GtkWidget *active_item = NULL;
+ #ifdef CAN_SEPARATE_RADIO_MENU_ITEMS
+@@ -4056,9 +4050,7 @@
+ #elif HAVE_GSPELL
+     lang_list = gspell_language_get_available();
+ #else                           /* HAVE_GTKSPELL_3_0_3 */
+-    broker = enchant_broker_init();
+     lang_list = NULL;
+-    enchant_broker_list_dicts(broker, sw_broker_cb, &lang_list);
+ #endif                          /* HAVE_GTKSPELL_3_0_3 */
+ 
+     for (i = 0; i < ELEMENTS(locales); i++) {
+@@ -4133,7 +4125,6 @@
+ #if !HAVE_GSPELL
+     g_list_free_full(lang_list, (GDestroyNotify) g_free);
+ #if !HAVE_GTKSPELL_3_0_3
+-    enchant_broker_free(broker);
+ #endif                          /* HAVE_GTKSPELL_3_0_3 */
+ #endif                          /* HAVE_GSPELL */
+ 
+diff -Naur balsa-2.5.3/src/spell-check.c balsa-ok/src/spell-check.c
+--- balsa-2.5.3/src/spell-check.c	2016-12-09 21:02:44.000000000 +0300
++++ balsa-ok/src/spell-check.c	2017-01-25 13:57:17.000000000 +0300
+@@ -22,7 +22,6 @@
+ #endif                          /* HAVE_CONFIG_H */
+ #include "spell-check.h"
+ 
+-#include <enchant.h>
+ #include <glib/gi18n.h>
+ 
+ #include "balsa-app.h"
+@@ -44,8 +43,6 @@
+     GtkEntry *entry;
+ 
+     /* actual spell checking variables */
+-    EnchantBroker *broker;
+-    EnchantDict *dict;
+     gchar **suggestions;
+ 
+     /* restoration information */
+@@ -547,89 +544,6 @@
+ void
+ balsa_spell_check_start(BalsaSpellCheck * spell_check)
+ {
+-    const gchar *enchant_error;
+-    GtkTextBuffer *buffer;
+-    GtkTextIter start, end, iter;
+-    GtkTextMark *insert;
+-
+-    g_return_if_fail(BALSA_IS_SPELL_CHECK(spell_check));
+-
+-    spell_check->broker = enchant_broker_init();
+-
+-    enchant_error = enchant_broker_get_error(spell_check->broker);
+-    if (enchant_error) {
+-	/* quit without breaking things */
+-        GtkWindow *parent;
+-
+-        parent = gtk_window_get_transient_for(GTK_WINDOW(spell_check));
+-	balsa_information_parented(parent,
+-                                   LIBBALSA_INFORMATION_ERROR,
+-                                   "%s",
+-                                   enchant_error);
+-
+-	gtk_widget_destroy((GtkWidget *) spell_check);
+-
+-	return;
+-    }
+-
+-    spell_check->dict =
+-        enchant_broker_request_dict(spell_check->broker,
+-                                    spell_check->language_tag);
+-
+-    buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    insert = gtk_text_buffer_get_insert(buffer);
+-    gtk_text_buffer_get_iter_at_mark(buffer, &start, insert);
+-    spell_check->original_offset = gtk_text_iter_get_offset(&start);
+-    spell_check->original_mark =
+-        gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE);
+-
+-    /* Marks for saving iter locations. */
+-    spell_check->start_mark =
+-        gtk_text_buffer_create_mark(buffer, NULL, &start, TRUE);
+-    spell_check->end_mark =
+-        gtk_text_buffer_create_mark(buffer, NULL, &start, FALSE);
+-
+-    /* Get the original text so we can always revert */
+-#if HAVE_GTKSOURCEVIEW
+-    spell_check->original_text =
+-	gtk_source_buffer_new(gtk_text_buffer_get_tag_table(buffer));
+-    gtk_text_buffer_get_start_iter((GtkTextBuffer *)
+-                                   spell_check->original_text, &iter);
+-    gtk_text_buffer_get_bounds((GtkTextBuffer *) buffer, &start, &end);
+-    gtk_text_buffer_insert_range((GtkTextBuffer *)
+-                                 spell_check->original_text, &iter,
+-                                 &start, &end);
+-#else                           /* HAVE_GTKSOURCEVIEW */
+-    spell_check->original_text =
+-	gtk_text_buffer_new(gtk_text_buffer_get_tag_table(buffer));
+-    gtk_text_buffer_get_start_iter(spell_check->original_text, &iter);
+-    gtk_text_buffer_get_bounds(buffer, &start, &end);
+-    gtk_text_buffer_insert_range(spell_check->original_text, &iter,
+-                                 &start, &end);
+-#endif                          /* HAVE_GTKSOURCEVIEW */
+-
+-    if (balsa_app.debug)
+-	balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			  "BalsaSpellCheck: Start\n");
+-
+-    /* 
+-     * compile the quoted-text regular expression (note:
+-     * balsa_app.quote_regex may change, so compile it new every
+-     * time!)
+-     */
+-    if (quoted_rex_compiled)
+-        g_regex_unref(quoted_rex);
+-    quoted_rex = balsa_quote_regex_new();
+-    if (!quoted_rex)
+-        quoted_rex_compiled = FALSE;
+-    else
+-        quoted_rex_compiled = TRUE;
+-
+-    spell_check->end_iter = start;
+-
+-    /* start the check */
+-    if (!balsa_spell_check_next(spell_check))
+-        gtk_widget_show_all(GTK_WIDGET(spell_check));
+ }
+ 
+ /* balsa_spell_check_next ()
+@@ -644,53 +558,6 @@
+ static gboolean
+ balsa_spell_check_next(BalsaSpellCheck * spell_check)
+ {
+-    GtkTextBuffer *buffer;
+-    GtkTreeView *tree_view;
+-    GtkTreeModel *model;
+-    GtkTreeIter iter;
+-
+-    if (!next_word(spell_check)) {
+-	spch_finish(spell_check, TRUE);
+-	return TRUE;
+-    }
+-
+-    while (check_word(spell_check)) {
+-	if (!next_word(spell_check)) {
+-	    spch_finish(spell_check, TRUE);
+-	    return TRUE;
+-	}
+-    }
+-
+-    tree_view = spell_check->tree_view;
+-    model = gtk_tree_view_get_model(tree_view);
+-
+-    /* found an incorrect spelling */
+-    if (gtk_tree_model_get_iter_first(model, &iter)) {
+-        GtkTreeSelection *selection;
+-        GtkTreePath *path;
+-
+-        selection = gtk_tree_view_get_selection(tree_view);
+-        path = gtk_tree_model_get_path(model, &iter);
+-        gtk_tree_selection_select_path(selection, path);
+-        gtk_tree_view_scroll_to_cell(tree_view, path, NULL, TRUE, 0.5, 0);
+-        gtk_tree_path_free(path);
+-    }
+-
+-    /* Highlight current word by selecting it; first we'll move the
+-     * cursor to start of this word; we'll highlight it by moving
+-     * the selection-bound to its end, but we must do that in an idle
+-     * callback, otherwise the first word is never highlighted. */
+-    buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    gtk_text_buffer_place_cursor(buffer, &spell_check->start_iter);
+-    spell_check->highlight_idle_id =
+-        g_idle_add((GSourceFunc) highlight_idle, spell_check);
+-
+-    /* scroll text window to show current word */
+-    gtk_text_view_scroll_to_mark(spell_check->text_view,
+-                                 gtk_text_buffer_get_insert(buffer),
+-                                 0, FALSE, 0, 0);
+-
+-    spch_save_word_iters(spell_check);
+     return FALSE;
+ }
+ 
+@@ -699,17 +566,6 @@
+ static gboolean
+ highlight_idle(BalsaSpellCheck * spell_check)
+ {
+-    GtkTextBuffer *buffer;
+-
+-    gdk_threads_enter();
+-    if (spell_check->highlight_idle_id) {
+-        spch_restore_word_iters(spell_check);
+-        buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-        gtk_text_buffer_move_mark_by_name(buffer, "selection_bound",
+-                                          &spell_check->end_iter);
+-        spell_check->highlight_idle_id = 0;
+-    }
+-    gdk_threads_leave();
+     return FALSE;
+ }
+ 
+@@ -723,25 +579,6 @@
+ balsa_spell_check_learn(BalsaSpellCheck * spell_check,
+ 			LearnType learn_type)
+ {
+-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    gchar *word;
+-
+-    word =
+-        gtk_text_buffer_get_text(buffer, &spell_check->start_iter,
+-                                 &spell_check->end_iter, FALSE);
+-
+-    if (balsa_app.debug)
+-	balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			  "BalsaSpellCheck: Learn %s\n", word);
+-
+-    if (learn_type == SESSION_DICT) {
+-	enchant_dict_add_to_session(spell_check->dict, word, -1);
+-    } else {
+-	enchant_dict_add(spell_check->dict, word, -1);
+-    }
+-
+-    g_free(word);
+-    finish_check(spell_check);
+ }
+ 
+ 
+@@ -754,62 +591,6 @@
+ static void
+ balsa_spell_check_fix(BalsaSpellCheck * spell_check, gboolean fix_all)
+ {
+-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    gchar *new_word;
+-    gchar *old_word;
+-
+-    old_word =
+-        gtk_text_buffer_get_text(buffer, &spell_check->start_iter,
+-                                 &spell_check->end_iter, FALSE);
+-    new_word = gtk_editable_get_chars(GTK_EDITABLE(spell_check->entry),
+-				      0, -1);
+-
+-    if (!*new_word) {
+-	/* no word to replace, ignore */
+-        g_free(new_word);
+-	g_free(old_word);
+-	return;
+-    }
+-
+-    /* Some spelling modules can learn from user
+-     * replacement choices. */
+-    enchant_dict_store_replacement(spell_check->dict,
+-                                   old_word, -1, new_word, -1);
+-
+-    if (check_error(spell_check)) {
+-	spch_finish(spell_check, TRUE);
+-	g_free(new_word);
+-	g_free(old_word);
+-	return;
+-    }
+-
+-    if (balsa_app.debug)
+-	balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			  "BalsaSpellCheck: Replace %s with %s\n",
+-			  old_word, new_word);
+-
+-    switch_word(spell_check, new_word);
+-
+-    if (fix_all) {
+-        spch_save_word_iters(spell_check);
+-	while (next_word(spell_check)) {
+-            gchar *this_word;
+-
+-            this_word =
+-                gtk_text_buffer_get_text(buffer, &spell_check->start_iter,
+-                                         &spell_check->end_iter, FALSE);
+-	    if (g_ascii_strcasecmp(old_word, this_word) == 0) {
+-		switch_word(spell_check, new_word);
+-	    }
+-	    g_free(this_word);
+-	}
+-        spch_restore_word_iters(spell_check);
+-    }
+-
+-    finish_check(spell_check);
+-
+-    g_free(new_word);
+-    g_free(old_word);
+ }
+ 
+ 
+@@ -820,34 +601,6 @@
+ static void
+ balsa_spell_check_destroy(GObject * object)
+ {
+-    BalsaSpellCheck *spell_check;
+-
+-    spell_check = BALSA_SPELL_CHECK(object);
+-
+-    if (spell_check->suggestions) {
+-	finish_check(spell_check);
+-    }
+-
+-    if (spell_check->broker) {
+-	spch_finish(spell_check, FALSE);
+-    }
+-
+-    g_free(spell_check->language_tag);
+-    spell_check->language_tag = NULL;
+-
+-    if (spell_check->highlight_idle_id) {
+-        g_source_remove(spell_check->highlight_idle_id);
+-        spell_check->highlight_idle_id = 0;
+-    }
+-
+-    if (quoted_rex_compiled) {
+-        g_regex_unref(quoted_rex);
+-        quoted_rex_compiled = FALSE;
+-    }
+-
+-    if (G_OBJECT_CLASS(balsa_spell_check_parent_class)->dispose)
+-        (*G_OBJECT_CLASS(balsa_spell_check_parent_class)->
+-         dispose) (object);
+ }
+ 
+ 
+@@ -858,51 +611,6 @@
+ static void
+ spch_finish(BalsaSpellCheck * spell_check, gboolean keep_changes)
+ {
+-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    GtkTextIter original;
+-
+-
+-    finish_check(spell_check);
+-
+-    if (keep_changes) {
+-        gtk_text_buffer_get_iter_at_mark(buffer, &original,
+-                                         spell_check->original_mark);
+-        gtk_text_buffer_delete_mark(buffer, spell_check->original_mark);
+-        gtk_text_buffer_delete_mark(buffer, spell_check->start_mark);
+-        gtk_text_buffer_delete_mark(buffer, spell_check->end_mark);
+-        g_object_unref(spell_check->original_text);
+-    } else {
+-	/* replace corrected text with original text */
+-#if HAVE_GTKSOURCEVIEW
+-        buffer = (GtkTextBuffer *) spell_check->original_text;
+-#else                           /* HAVE_GTKSOURCEVIEW */
+-        buffer = spell_check->original_text;
+-#endif                          /* HAVE_GTKSOURCEVIEW */
+-        gtk_text_view_set_buffer(spell_check->text_view, buffer);
+-        gtk_text_buffer_get_iter_at_offset(buffer, &original,
+-                                           spell_check->original_offset);
+-    }
+-    gtk_text_buffer_place_cursor(buffer, &original);
+-
+-    spell_check->original_text = NULL;
+-
+-    check_error(spell_check);
+-
+-    if (spell_check->broker) {
+-        if (spell_check->dict) {
+-            enchant_broker_free_dict(spell_check->broker,
+-                                     spell_check->dict);
+-            spell_check->dict = NULL;
+-        }
+-        enchant_broker_free(spell_check->broker);
+-        spell_check->broker = NULL;
+-    }
+-
+-    if (balsa_app.debug)
+-	balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			  "BalsaSpellCheck: Finished\n");
+-
+-    gtk_widget_destroy((GtkWidget *) spell_check);
+ }
+ 
+ 
+@@ -914,20 +622,6 @@
+ static void
+ setup_suggestions(BalsaSpellCheck * spell_check, gsize n_suggs)
+ {
+-    GtkTreeModel *model;
+-    GtkListStore *store;
+-    guint i;
+-
+-    model = gtk_tree_view_get_model(spell_check->tree_view);
+-    store = GTK_LIST_STORE(model);
+-
+-    for (i = 0; i < n_suggs; i++) {
+-        GtkTreeIter iter;
+-
+-        gtk_list_store_append(store, &iter);
+-        gtk_list_store_set(store, &iter, 0, spell_check->suggestions[i],
+-                           -1);
+-    }
+ }
+ 
+ 
+@@ -941,52 +635,7 @@
+ static gboolean
+ check_word(BalsaSpellCheck * spell_check)
+ {
+-    gboolean correct;
+-    GtkTextBuffer *buffer;
+-    gchar *word;
+-
+-
+-    buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-    word = gtk_text_buffer_get_text(buffer,
+-				    &spell_check->start_iter,
+-				    &spell_check->end_iter, FALSE);
+-
+-    if (word) {
+-        gint enchant_check;
+-
+-	if (balsa_app.debug)
+-	    balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			      "BalsaSpellCheck: Check %s", word);
+-
+-	enchant_check = enchant_dict_check(spell_check->dict, word, -1);
+-
+-        if (enchant_check < 0) {
+-            check_error(spell_check);
+-            return TRUE;
+-        }
+-        correct = !enchant_check;
+-    } else {
+-	return TRUE;
+-    }
+-
+-    if (!correct) {
+-        gsize n_suggs;
+-
+-	if (balsa_app.debug)
+-	    balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			      " …incorrect.\n");
+-
+-	spell_check->suggestions =
+-	    enchant_dict_suggest(spell_check->dict, word, -1, &n_suggs);
+-	setup_suggestions(spell_check, n_suggs);
+-    } else {
+-	if (balsa_app.debug)
+-	    balsa_information(LIBBALSA_INFORMATION_DEBUG,
+-			      " …correct.\n");
+-    }
+-
+-    g_free(word);
+-    return correct;
++    return TRUE;
+ }
+ 
+ 
+@@ -998,16 +647,6 @@
+ static void
+ finish_check(BalsaSpellCheck * spell_check)
+ {
+-    GtkTreeModel *model = gtk_tree_view_get_model(spell_check->tree_view);
+-
+-    /* get rid of the suggestions */
+-    gtk_list_store_clear(GTK_LIST_STORE(model));
+-
+-    gtk_entry_set_text(spell_check->entry, "");
+-
+-    enchant_dict_free_string_list(spell_check->dict,
+-                                  spell_check->suggestions);
+-    spell_check->suggestions = NULL;
+ }
+ 
+ 
+@@ -1020,16 +659,7 @@
+ static gboolean
+ check_error(BalsaSpellCheck * spell_check)
+ {
+-    const gchar *enchant_error;
+-
+-    enchant_error = enchant_broker_get_error(spell_check->broker);
+-    if (enchant_error) {
+-	balsa_information(LIBBALSA_INFORMATION_WARNING,
+-			  _("BalsaSpellCheck: Enchant Error: %s\n"),
+-			  enchant_error);
+ 	return TRUE;
+-    }
+-    return FALSE;
+ }
+ 
+ 
+@@ -1042,57 +672,7 @@
+ static gboolean
+ next_word(BalsaSpellCheck * spell_check)
+ {
+-    GtkTextBuffer *buffer;
+-    GtkTextIter line_start, line_end;
+-    gchar *line = NULL;
+-    gboolean skip_sig, skip_quoted = FALSE;
+-
+-    buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-
+-    /* find end of current line */
+-    line_end = spell_check->end_iter;
+-    gtk_text_iter_forward_line(&line_end);
+-
+-    do {
+-        gunichar last_char;
+-
+-        /* move forward one word */
+-        do {
+-
+-            if (!gtk_text_iter_forward_word_end(&spell_check->end_iter))
+-                /* end of buffer */
+-                return FALSE;
+-
+-            /* we want only alpha words */
+-            spell_check->start_iter = spell_check->end_iter;
+-            gtk_text_iter_backward_char(&spell_check->start_iter);
+-            last_char = gtk_text_iter_get_char(&spell_check->start_iter);
+-        } while (!g_unichar_isalpha(last_char));
+-
+-        /* is the new word on a new line? */
+-        while (gtk_text_iter_compare(&spell_check->end_iter, &line_end) > 0) {
+-            line_start = line_end;
+-            gtk_text_iter_forward_line(&line_end);
+-            line = gtk_text_buffer_get_text(buffer, &line_start,
+-                                        &line_end, FALSE);
+-            skip_sig = (!balsa_app.check_sig
+-                        && strcmp(line, "-- \n") == 0);
+-            skip_quoted = (!balsa_app.check_quoted && quoted_rex_compiled
+-                           && is_a_quote(line, quoted_rex));
+-            g_free(line);
+-
+-            if (skip_sig)
+-                /* new word is in the sig */
+-                return FALSE;
+-        }
+-        /* we've found the line that the new word is on--keep looking if
+-         * it's quoted */
+-    } while (skip_quoted);
+-
+-    spell_check->start_iter = spell_check->end_iter;
+-    gtk_text_iter_backward_word_start(&spell_check->start_iter);
+-
+-    return TRUE;
++    return FALSE;
+ }
+ 
+ 
+@@ -1103,14 +683,6 @@
+ static void
+ switch_word(BalsaSpellCheck * spell_check, const gchar * new_word)
+ {
+-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(spell_check->text_view);
+-
+-    /* remove and replace the current word. */
+-    spch_save_word_iters(spell_check);
+-    gtk_text_buffer_delete(buffer, &spell_check->start_iter,
+-                           &spell_check->end_iter);
+-    gtk_text_buffer_insert(buffer, &spell_check->end_iter, new_word, -1);
+-    spch_restore_word_iters(spell_check);
+ }
+ 
+ static void

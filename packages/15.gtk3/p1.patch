@@ -1,0 +1,26 @@
+--- PKGBUILD	2017-02-15 16:54:32.000000000 +0300
++++ PKGBUILD	2017-02-15 16:55:32.958578286 +0300
+@@ -9,9 +9,9 @@
+ pkgdesc="GObject-based multi-platform GUI toolkit"
+ arch=(i686 x86_64)
+ url="http://www.gtk.org/"
+-depends=(atk cairo libxcursor libxinerama libxrandr libxi libepoxy gdk-pixbuf2 dconf
+-         libxcomposite libxdamage pango shared-mime-info at-spi2-atk wayland libxkbcommon
+-         adwaita-icon-theme json-glib librsvg wayland-protocols desktop-file-utils mesa)
++depends=(atk cairo libxcursor libxinerama libxrandr libxi libepoxy gdk-pixbuf2
++         libxcomposite libxdamage pango shared-mime-info at-spi2-atk libxkbcommon
++         adwaita-icon-theme json-glib librsvg desktop-file-utils mesa)
+ makedepends=(gobject-introspection libcanberra gtk-doc git colord rest libcups glib2-docs)
+ license=(LGPL)
+ _commit=dad4aecfc017dbe97074a188c972c0af013c5a08  # tags/3.22.8^0
+@@ -46,8 +46,8 @@
+         --disable-schemas-compile \
+         --enable-x11-backend \
+         --enable-broadway-backend \
+-        --enable-wayland-backend \
+-        --enable-gtk-doc
++        --disable-wayland-backend \
++        --disable-gtk-doc
+ 
+     #https://bugzilla.gnome.org/show_bug.cgi?id=655517
+     sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool

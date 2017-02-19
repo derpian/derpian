@@ -1,0 +1,25 @@
+
+pkgname=tux-navigator
+pkgver=0.1
+pkgrel=1
+pkgdesc="tux navigator file manager"
+arch=('i686' 'x86_64')
+url="http://latte-desktop.org/"
+license=('GPL3')
+depends=('gtk3' 'libfmlt')
+makedepends=('intltool')
+source=('git+https://github.com/derpian/tux-navigator.git')
+md5sums=('SKIP')
+
+build() {
+    cd "tux-navigator"
+    sh build.sh
+}
+
+package() {
+    cd "tux-navigator"
+    mkdir -p "${pkgdir}/usr/bin"
+    cp -v tuxnav "${pkgdir}/usr/bin"
+    mkdir -p "${pkgdir}/usr/share/applications"
+    cp -v tuxnav.desktop "${pkgdir}/usr/share/applications"
+}

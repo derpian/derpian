@@ -1,0 +1,25 @@
+--- PKGBUILD-bk	2017-02-17 04:36:04.000000000 +0300
++++ PKGBUILD	2017-02-17 05:13:09.396363639 +0300
+@@ -39,9 +39,7 @@
+   cd $pkgbase
+ 
+   ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libexecdir=/usr/lib \
+-    --with-package-name="GStreamer Base Plugins (Arch Linux)" \
+-    --with-package-origin="http://www.archlinux.org/" \
+-    --enable-experimental --enable-gtk-doc --disable-static
++    --enable-experimental --disable-gtk-doc --disable-static --disable-extra-checks
+ 
+   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -51,11 +49,6 @@
+   sed -e 's/^SUBDIRS_EXT =.*/SUBDIRS_EXT =/' -i Makefile
+ }
+ 
+-check() {
+-  cd $pkgbase
+-  make check
+-}
+-
+ package_gst-plugins-base-libs() {
+   pkgdesc="GStreamer Multimedia Framework Base Plugin libraries"
+   depends=(gstreamer orc libxv)

@@ -1,0 +1,19 @@
+--- PKGBUILD	2016-10-19 13:42:29.000000000 +0300
++++ PKGBUILD	2016-10-19 14:13:25.568312293 +0300
+@@ -113,6 +113,7 @@
+   depends=('libdrm' 'libx11' 'llvm-libs' 'expat' 'elfutils')
+ 
+   install -m755 -d ${pkgdir}/usr/lib
++  mkdir -p ${srcdir}/fakeinstall/usr/lib/dri
+   cp -rv ${srcdir}/fakeinstall/usr/lib/dri ${pkgdir}/usr/lib
+    
+   install -m755 -d "${pkgdir}/usr/share/licenses/libva-mesa-driver"
+@@ -152,7 +153,7 @@
+   cp -rv ${srcdir}/fakeinstall/usr/lib/d3d  ${pkgdir}/usr/lib
+   cp -rv ${srcdir}/fakeinstall/usr/lib/lib{gbm,glapi}.so* ${pkgdir}/usr/lib/
+   cp -rv ${srcdir}/fakeinstall/usr/lib/libOSMesa.so* ${pkgdir}/usr/lib/
+-  cp -rv ${srcdir}/fakeinstall/usr/lib/libwayland*.so* ${pkgdir}/usr/lib/
++  #cp -rv ${srcdir}/fakeinstall/usr/lib/libwayland*.so* ${pkgdir}/usr/lib/
+   cp -rv ${srcdir}/fakeinstall/usr/lib/libxatracker.so* ${pkgdir}/usr/lib/
+ 
+   cp -rv ${srcdir}/fakeinstall/usr/include ${pkgdir}/usr

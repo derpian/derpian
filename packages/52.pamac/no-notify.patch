@@ -1,0 +1,61 @@
+--- src/tray.vala	2016-11-05 12:30:00.000000000 +0300
++++ src/tray.vala	2016-11-23 03:17:43.000000000 +0300
+@@ -40,7 +40,6 @@
+ 	}
+ 
+ 	public abstract class TrayIcon: Gtk.Application {
+-		Notify.Notification notification;
+ 		Daemon daemon;
+ 		bool extern_lock;
+ 		uint refresh_timeout_id;
+@@ -183,40 +182,12 @@
+ 		}
+ 
+ 		void show_notification (string info) {
+-			try {
+-				close_notification();
+-				notification = new Notify.Notification (_("Update Manager"), info, "system-software-update");
+-				notification.add_action ("default", _("Details"), execute_updater);
+-				notification.show ();
+-			} catch (Error e) {
+-				stderr.printf ("Notify Error: %s", e.message);
+-			}
+ 		}
+ 
+ 		void update_notification (string info) {
+-			try {
+-				if (notification != null) {
+-					if (notification.get_closed_reason() == -1 && notification.body != info) {
+-						notification.update (_("Update Manager"), info, "system-software-update");
+-						notification.show ();
+-					}
+-				} else {
+-					show_notification (info);
+-				}
+-			} catch (Error e) {
+-				stderr.printf ("Notify Error: %s", e.message);
+-			}
+ 		}
+ 
+ 		void close_notification () {
+-			try {
+-				if (notification != null) {
+-				 	notification.close();
+-				 	notification = null;
+-				}
+-			} catch (Error e) {
+-				stderr.printf ("Notify Error: %s", e.message);
+-			}
+ 		}
+ 
+ 		bool check_pamac_running () {
+@@ -298,9 +269,6 @@
+ 
+ 			create_menu ();
+ 			init_status_icon ();
+-
+-			Notify.init (_("Update Manager"));
+-
+ 			start_daemon ();
+ 			try {
+ 				lockfile = GLib.File.new_for_path (daemon.get_lockfile ());

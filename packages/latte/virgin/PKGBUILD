@@ -1,0 +1,83 @@
+# Maintainer: Hugo Osvaldo Barrera <hugo@barrera.io>
+# Contributor: Sebastian Ullrich <echo c2ViYXN0aUBudWxscmkuY2gK|base64 -d>
+# Contributor: lishengming.zju <lishengming.zju@gmail.com>
+
+pkgname=('virgin' 'libpurple' 'finch')
+_hgname=pidgin
+pkgver=0.1
+pkgrel=1
+pkgdesc="Multi-protocol instant messaging client. Latest mercurial build."
+arch=('i686' 'x86_64')
+url="http://latte-desktop.org/"
+license=('GPL')
+makedepends=('python2' 'ca-certificates' 'intltool'
+             'ca-certificates' 'libxss' 'libsm'
+             'hicolor-icon-theme' 'dbus-glib' 'json-glib'
+             'libsasl' 'libidn' 'dbus-glib' 'nss' 'gplugin')
+makedepends+=('libx11' 'python')
+source=('git+https://github.com/derpian/virgin.git')
+md5sums=('SKIP')
+
+build() {
+  cd "$srcdir"/virgin
+  sh build.sh
+  make
+}
+
+package_virgin() {
+  pkgdesc="Multi-protocol instant messaging client"
+  depends=('libpurple' 'libxss' 'libsm'
+           'hicolor-icon-theme' 'dbus-glib' 'json-glib')
+  optdepends=('aspell: for spelling correction')
+  provides=('pidgin')
+
+  cd "$srcdir"/virgin
+
+  # For linking
+  make -C libpurple DESTDIR="$pkgdir" install-libLTLIBRARIES
+
+  make -C pidgin DESTDIR="$pkgdir" install
+  make -C doc DESTDIR="$pkgdir" install
+
+  # Remove files that are packaged in libpurple
+  make -C libpurple DESTDIR="$pkgdir" uninstall-libLTLIBRARIES
+
+  install -Dm644 pidgin/data/pidgin.desktop "$pkgdir"/usr/share/applications/pidgin.desktop
+
+  rm "$pkgdir/usr/share/man/man1/finch.1"
+}
+
+package_libpurple() {
+  pkgdesc="IM library extracted from Pidgin"
+  depends=('libsasl' 'libidn' 'dbus-glib' 'nss')
+  optdepends=('avahi: Bonjour protocol support'
+              'ca-certificates: SSL CA certificates'
+              'python-dbus: for purple-remote and purple-url-handler'
+              'tk: Tcl/Tk scripting support')
+  provides=('libpurple')
+
+  cd "$srcdir"/virgin
+
+  for _dir in libpurple share/sounds share/ca-certs m4macros po; do
+    make -C "$_dir" DESTDIR="$pkgdir" install
+  done
+}
+
+package_finch() {
+  pkgdesc="A ncurses-based messaging client"
+  depends=("libpurple=$pkgver-$pkgrel" 'libx11' 'python2')
+  provides=('finch')
+
+  cd "$srcdir"/virgin
+
+  # For linking
+  make -C libpurple DESTDIR="$pkgdir" install-libLTLIBRARIES
+
+  make -C finch DESTDIR="$pkgdir" install
+  make -C doc DESTDIR="$pkgdir" install
+
+  # Remove files that are packaged in libpurple
+  make -C libpurple DESTDIR="$pkgdir" uninstall-libLTLIBRARIES
+
+  rm "$pkgdir"/usr/share/man/man1/pidgin.1
+}

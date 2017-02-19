@@ -1,0 +1,44 @@
+--- PKGBUILD	2017-02-14 11:41:05.557770055 +0000
++++ PKGBUILD	2017-02-15 12:14:27.000000000 +0000
+@@ -67,7 +67,7 @@
+     --enable-gallium-llvm \
+     --enable-llvm-shared-libs \
+     --enable-shared-glapi \
+-    --enable-libglvnd \
++    --disable-libglvnd --enable-opengl \
+     --enable-egl \
+     --enable-glx \
+     --enable-glx-tls \
+@@ -178,8 +178,8 @@
+   install -m755 -d ${pkgdir}/etc
+   cp -rv ${srcdir}/fakeinstall/etc/drirc ${pkgdir}/etc
+   
+-  install -m755 -d ${pkgdir}/usr/share/glvnd/egl_vendor.d
+-  cp -rv ${srcdir}/fakeinstall/usr/share/glvnd/egl_vendor.d/50_mesa.json ${pkgdir}/usr/share/glvnd/egl_vendor.d/
++  install -m755 -d ${pkgdir}/usr/share/glvnd/egl_vendor.d || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/share/glvnd/egl_vendor.d/50_mesa.json ${pkgdir}/usr/share/glvnd/egl_vendor.d/ || echo ok
+ 
+   install -m755 -d ${pkgdir}/usr/lib/xorg/modules/dri
+   # ati-dri, nouveau-dri, intel-dri, svga-dri, swrast
+@@ -198,15 +198,15 @@
+   # remove vulkan headers
+   rm -rf ${pkgdir}/usr/include/vulkan
+ 
+-  #install -m755 -d ${pkgdir}/usr/lib/mesa
++  install -m755 -d ${pkgdir}/usr/lib/mesa
+   # move libgl/EGL/glesv*.so to not conflict with blobs - may break .pc files ?
+-  #cp -rv ${srcdir}/fakeinstall/usr/lib/libGL.so* 	${pkgdir}/usr/lib/mesa/
+-  #cp -rv ${srcdir}/fakeinstall/usr/lib/libEGL.so* 	${pkgdir}/usr/lib/mesa/
+-  #cp -rv ${srcdir}/fakeinstall/usr/lib/libGLES*.so*	${pkgdir}/usr/lib/mesa/
++  cp -rv ${srcdir}/fakeinstall/usr/lib/libGL.so* 	${pkgdir}/usr/lib/mesa/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib/libEGL.so* 	${pkgdir}/usr/lib/mesa/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib/libGLES*.so*	${pkgdir}/usr/lib/mesa/ || echo ok
+ 
+   # libglvnd support
+-  cp -rv ${srcdir}/fakeinstall/usr/lib/libGLX_mesa.so* ${pkgdir}/usr/lib/
+-  cp -rv ${srcdir}/fakeinstall/usr/lib/libEGL_mesa.so* ${pkgdir}/usr/lib/
++  cp -rv ${srcdir}/fakeinstall/usr/lib/libGLX_mesa.so* ${pkgdir}/usr/lib/ || echo ok
++  cp -rv ${srcdir}/fakeinstall/usr/lib/libEGL_mesa.so* ${pkgdir}/usr/lib/ || echo ok
+ 
+   install -m755 -d "${pkgdir}/usr/share/licenses/mesa"
+   install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/mesa/"

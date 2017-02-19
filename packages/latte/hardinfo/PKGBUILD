@@ -1,0 +1,39 @@
+# $Id$
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+pkgname=hardinfo
+pkgver=0.5.1
+pkgrel=6
+pkgdesc="A system information and benchmark tool."
+arch=('i686' 'x86_64')
+url="http://sourceforge.net/projects/hardinfo.berlios/"
+license=('GPL2')
+depends=('gtk3' 'libsoup')
+options=('!emptydirs')
+source=('git+https://github.com/derpian/hardinfo.git'
+        hardinfo.distro)
+sha1sums=('SKIP'
+          '4c31cbbfbdeb48593641ff600c8d4fb7bda2b01c')
+
+prepare() {
+  cd ${pkgname}
+  #patch -p1 -i "${srcdir}/fixsensors.patch"
+  #sed -i 's|/usr/lib64|/usr/lib|' configure
+  sed -i 's|lib64|lib|' hardinfo/binreloc.c
+  #sed -i 's|{ DB_PREFIX "debian_version",	"deb"  },|{ DB_PREFIX "hardinfo.distro",       "arch"  },{ DB_PREFIX "debian_version",	"deb"  },|' computer.h
+}
+
+build() {
+  cd ${pkgname}
+  cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr .
+  make
+}
+
+package() {
+  cd ${pkgname}
+  make DESTDIR="${pkgdir}" install
+  install -D -m644 "${srcdir}/hardinfo.distro" "${pkgdir}/etc/hardinfo.distro"
+  mv "${pkgdir}/usr/lib64" "${pkgdir}/usr/lib"
+    mkdir -p "${pkgdir}/usr/share/applications"
+    cp -v ../../hardinfo.desktop "${pkgdir}/usr/share/applications"
+}

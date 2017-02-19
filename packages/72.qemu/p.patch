@@ -1,0 +1,22 @@
+--- PKGBUILD-bk	2016-11-18 08:00:05.000000000 +0000
++++ PKGBUILD	2016-12-07 10:39:30.564044696 +0000
+@@ -15,8 +15,8 @@
+ makedepends=('glib2' 'pixman'
+              'gnutls' 'util-linux' 'curl' 'libsasl'
+              'libcap-ng' 'libaio' 'libseccomp'
+-             'python2' 'usbredir' 'lzo'
+-             'dtc' 'git' 'texi2html' 'perl')
++             'python2' 'usbredir' 'lzo' 'dtc'
++             'git' 'perl' 'gtk3' 'virglrenderer' 'sdl2' 'vte3' 'jemalloc' 'libnfs' 'numactl' 'seabios' 'usbredir' 'vde2' 'xfsprogs')
+ source=(git://git.qemu.org/qemu.git
+         qemu.sysusers
+         qemu-ga.service
+@@ -51,7 +51,7 @@
+   ./configure --prefix=/usr --sysconfdir=/etc \
+               --python=/usr/bin/python2 --smbd=/usr/bin/smbd \
+               --disable-docs --libexecdir=/usr/lib/qemu \
+-              --disable-gtk --enable-linux-aio --enable-seccomp \
++              --enable-gtk --enable-vte --enable-vnc --enable-kvm --enable-jemalloc --enable-linux-aio --enable-seccomp \
+               --localstatedir=/var \
+               --enable-tpm --enable-curl \
+               --enable-modules --enable-curl --disable-werror \

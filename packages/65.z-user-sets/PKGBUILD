@@ -1,0 +1,22 @@
+
+
+pkgname=z-user-sets
+pkgver=1.0
+pkgrel=1
+pkgdesc="A user settings"
+arch=('any')
+url="http://localhost/"
+license=('GPL')
+depends=('bash' 'latte-wm' 'latte-panel')
+source=(http://localhost/sets.tar
+	sets.install)
+md5sums=('SKIP' 'SKIP')
+install=sets.install
+
+package() {
+  cd ${srcdir}/z-user-sets
+  #install -d ${pkgdir}/usr/share/themes/${pkgname}
+  #cp -rf * ${pkgdir}/usr/share/themes/${pkgname}
+  cp -R * "${pkgdir}"
+}
+

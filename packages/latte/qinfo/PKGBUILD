@@ -1,0 +1,26 @@
+# Contributor: Simon Brakhane <simon.brakhane at web dot de>
+
+pkgname=qinfo3
+pkgver=1.0
+pkgrel=1
+pkgdesc="qinfo simple viewer"
+arch=('i686' 'x86_64')
+url="http://latte-desktop.org/"
+license=('GPL')
+depends=('gtk3')
+source=('git+https://github.com/derpian/qinfo3.git')
+md5sums=('SKIP')
+
+build() {
+  cd "$srcdir/$pkgname"
+  ./configure --prefix=/usr
+  make || return 1
+  #make DESTDIR=$pkgdir install || return 1
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  make DESTDIR="$pkgdir" install
+  sed -i "s|Exec=qinfo|Exec=qinfo3|g" "${pkgdir}/usr/share/applications/qinfo.desktop"
+}
+

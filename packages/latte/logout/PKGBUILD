@@ -1,0 +1,25 @@
+_ver=1
+_pkgbase=latte-logout
+pkgname=${_pkgbase}
+pkgver=${_ver}.0
+pkgrel=1
+pkgdesc="Latte shutdown manager"
+url="http://latte-desktop.org"
+arch=('i686' 'x86_64')
+license=('GPL')
+depends=('gtk3' 'cairo')
+makedepends=('make')
+source=('git+https://github.com/derpian/latte-logout.git')
+md5sums=('SKIP')
+
+build() {
+    cd "${srcdir}/latte-logout"
+    ./configure --prefix=/usr
+
+    make
+}
+
+package() {
+    cd "${srcdir}/latte-logout"
+    make DESTDIR="${pkgdir}" install
+}

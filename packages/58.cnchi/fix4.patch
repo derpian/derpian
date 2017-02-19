@@ -1,0 +1,57 @@
+diff -Naur cnchi/cnchi/config.py cnchi/cnchi/config.py
+--- cnchi/cnchi/config.py	2017-02-03 03:26:28.000000000 +0300
++++ cnchi/cnchi/config.py	2017-02-03 04:29:33.000000000 +0300
+@@ -55,7 +55,7 @@
+             'country_code': '',
+             'data': '/usr/share/cnchi/data/',
+             'desktop': 'gnome',
+-            'desktop_ask': True,
++            'desktop_ask': False,
+             'desktop_manager': 'lightdm',
+             'desktops': [],
+             'enable_alongside': True,
+@@ -96,7 +96,7 @@
+             'password': '',
+             'rankmirrors_done': False,
+             'rankmirrors_result': '',
+-            'require_password': True,
++            'require_password': False,
+             'ruuid': '',
+             'sentry_dsn': '',
+             'third_party_software': False,
+@@ -115,7 +115,7 @@
+             'use_luks': False,
+             'use_luks_in_root': False,
+             'use_lvm': False,
+-            'use_timesyncd': True,
++            'use_timesyncd': False,
+             'use_zfs': False,
+             'user_info_done': False,
+             'username': '',
+diff -Naur cnchi/cnchi/main_window.py cnchi/cnchi/main_window.py
+--- cnchi/cnchi/main_window.py	2017-02-02 12:05:59.000000000 +0000
++++ cnchi/cnchi/main_window.py	2017-02-03 02:41:23.081586818 +0000
+@@ -306,6 +306,7 @@
+         self.pages["check"] = check.Check(self.params)
+         self.pages["location"] = location.Location(self.params)
+         self.pages["timezone"] = timezone.Timezone(self.params)
++        self.pages["installation_ask"] = installation_ask.InstallationAsk(self.params)
+ 
+         if self.settings.get('desktop_ask'):
+             self.pages["keymap"] = keymap.Keymap(self.params)
+@@ -314,12 +315,11 @@
+         else:
+             self.pages["keymap"] = keymap.Keymap(
+                 self.params,
+-                next_page='features')
+-            self.pages["features"] = features.Features(
++                next_page='installation_ask')
++            self.pages["installation_ask"] = installation_ask.InstallationAsk(
+                 self.params,
+                 prev_page='keymap')
+ 
+-        self.pages["installation_ask"] = installation_ask.InstallationAsk(self.params)
+         self.pages["installation_automatic"] = installation_automatic.InstallationAutomatic(self.params)
+ 
+         if self.settings.get("enable_alongside"):
+

@@ -1,0 +1,33 @@
+--- PKGBUILD	2017-02-15 23:36:14.258783975 +0300
++++ PKGBUILD	2017-02-15 23:25:47.000000000 +0300
+@@ -13,9 +13,9 @@
+ _srcname=linux-${_basekernel}
+ _pfrel=10
+ pkgrel=1
+-_kernelname=-pf
++_kernelname=-derpian
+ _pfpatchhome="http://pf.natalenko.name/sources/${_basekernel}/"
+-_pfpatchname="patch-${_basekernel}${_kernelname}${_pfrel}"
++_pfpatchname="patch-${_basekernel}-pf${_pfrel}"
+ 
+ ### PATCH AND BUILD OPTIONS
+ 
+@@ -26,7 +26,7 @@
+ # see, https://bugs.archlinux.org/task/31187
+ 
+ # Set to 'y' to enable AUFS
+-_AUFS=n
++_AUFS=y
+ 
+ ####
+ _CPUSUFFIXES_KBUILD=(CORE2 K7 K8 K10 BARCELONA BOBCAT BULLDOZER PILEDRIVER PSC ATOM PENTIUMII PENTIUMIII PENTIUMM PENTIUM4 COREI7 COREI7AVX COREAVXI COREAVX2)
+@@ -81,6 +81,9 @@
+   msg "Applying pf-kernel patch"
+   patch -Np1 < ${srcdir}/${_pfpatchname}
+ 
++  #msg "Intel hdmi patch"
++  #patch -p1 -i "${srcdir}/../../hdmi.patch"
++
+   if [[ ${_AUFS} = 'y' ]]; then
+     msg "Fetching and applying aufs3 patches"
+     git clone ${_aufs3git} ${_aufs3name}

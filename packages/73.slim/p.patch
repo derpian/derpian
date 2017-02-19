@@ -1,0 +1,27 @@
+--- PKGBUILD-bk	2016-12-07 15:09:13.000000000 +0300
++++ PKGBUILD	2016-12-07 15:12:12.567308860 +0300
+@@ -14,7 +14,7 @@
+ license=('GPL2')
+ depends=('pam' 'libxmu' 'libpng' 'libjpeg' 'libxft' 'libxrandr' 'xorg-xauth'
+          'ttf-font')
+-makedepends=('cmake' 'freeglut')
++makedepends=('cmake')
+ backup=('etc/slim.conf' 'etc/logrotate.d/slim' 'etc/pam.d/slim'
+         'etc/slimlock.conf')
+ source=(https://downloads.sourceforge.net/project/slim.berlios/$pkgname-$pkgver.tar.gz
+@@ -29,6 +29,7 @@
+             '900b7ffe723b741c05bcc0ca857f300a2131a0029c6532eb17be935451bf2c70'
+             'b9a77a614c451287b574c33d41e28b5b149c6d2464bdb3a5274799842bca51a4'
+             '5bf44748b5003f2332d8b268060c400120b9100d033fa9d35468670d827f6def')
++install=slim.install
+ 
+ prepare() {
+   cd $pkgname-$pkgver
+@@ -66,6 +67,7 @@
+   sed -i -e 's|#xserver_arguments.*|xserver_arguments -nolisten tcp vt07|' \
+          -e 's|/var/run/slim.lock|/var/lock/slim.lock|' \
+     "$pkgdir/etc/slim.conf"
++  cat ../../slim.conf > "$pkgdir/etc/slim.conf"
+ }
+ 
+ # vim:set ts=2 sw=2 et:

@@ -1,0 +1,19 @@
+--- PKGBUILD.orig	2017-02-17 07:06:14.000000000 +0300
++++ PKGBUILD	2017-02-17 07:07:16.606254452 +0300
+@@ -8,7 +8,7 @@
+ url="https://wiki.gnome.org/Apps/Web"
+ arch=(i686 x86_64)
+ license=(GPL)
+-depends=(webkit2gtk gcr gnome-desktop)
++depends=(webkit2gtk gcr)
+ makedepends=(intltool itstool docbook-xml startup-notification lsb-release
+              gobject-introspection yelp-tools autoconf-archive appstream-glib git)
+ groups=(gnome)
+@@ -28,6 +28,7 @@
+ prepare() {
+   cd $pkgname
+   patch -Np1 -i ../pluginsdir.diff
++  patch -p1 -i ../../no-gnome.patch
+ 
+   git submodule init
+   git config --local submodule.libgd.url "$srcdir/libgd"

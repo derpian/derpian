@@ -1,0 +1,61 @@
+# Maintainer: Antergos Developers <dev@antergos.com>
+# Contributor: isiachi <isiachi@rhyeworld.it>
+
+pkgname=spl
+_pkgver=0.6.5.8
+_rev=964
+_kern=4.8.2_1
+pkgver="${_pkgver}.r${_rev}.${_kern}"
+pkgrel=1
+pkgdesc="Solaris Porting Layer kernel modules."
+license=('GPL')
+makedepends=("git")
+depends=("dkms" "spl-utils" "linux-headers")
+provides=("spl-dkms")
+conflicts=("spl-git" "spl-lts" "spl-dkms")
+install=spl.install
+arch=("i686" "x86_64")
+url="http://zfsonlinux.org/"
+_commit="${_pkgver}"
+source=("${pkgname}::https://github.com/zfsonlinux/spl/archive/spl-${_pkgver}.zip")
+md5sums=('3b98916ba77f91725252345dc5ff0788')
+install=spl.install
+
+
+#pkgver() {
+#	local _kernel='4.6.2_1'
+#	cd "${srcdir}/spl"
+#	printf "%s.r%s_%s" "${_pkgver}" "$(git rev-list --count HEAD)" "${_kernel}"
+#}
+
+build() {
+	sed -i "s|<PKGVER>|${_pkgver}|g" "${startdir}/${pkgname}.install"
+	cd "${srcdir}/${pkgname}-${pkgname}-${_commit}"
+	./autogen.sh
+
+	_at_enable=""
+	[ "${CARCH}" == "i686"  ] && _at_enable="--enable-atomic-spinlocks"
+
+	./configure \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+		--sbindir=/usr/bin \
+		--with-config=user \
+		${_at_enable}
+
+	make
+}
+
+package() {
+	dkmsdir="${pkgdir}/usr/src/spl-${_pkgver}"
+	install -d "${dkmsdir}"
+
+	cp -a "${srcdir}/${pkgname}-${pkgname}-${_commit}"/. ${dkmsdir}
+
+	cd "${dkmsdir}"
+	./autogen.sh
+	scripts/dkms.mkconf -v ${_pkgver} -f dkms.conf -n spl
+	chmod g-w,o-w -R .
+}
+
+# -*- mode: bash;-*-

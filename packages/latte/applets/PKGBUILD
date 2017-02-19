@@ -1,0 +1,45 @@
+_ver=1
+_pkgbase=latte-applets
+pkgname=${_pkgbase}
+pkgver=${_ver}.0
+pkgrel=1
+pkgdesc="The LATTE Applets"
+url="http://latte-desktop.org"
+arch=('i686' 'x86_64')
+license=('GPL')
+depends=('dbus-glib' 'libwnck3' 'libsm')
+makedepends=('intltool' 'itstool' 'gobject-introspection' 'gtksourceview3' 'latte-panel')
+source=('git+https://github.com/derpian/latte-applets.git')
+md5sums=('SKIP')
+
+build() {
+    cd "${srcdir}/latte-applets"
+    sh autogen.sh
+    ./configure \
+        --prefix=/usr \
+        --libexecdir=/usr/lib/${_pkgbase} \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --enable-introspection
+
+    #https://bugzilla.gnome.org/show_bug.cgi?id=656231
+    sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+    make
+
+    #cd bonus;make;cd ..
+    #cd button;make;cd ..
+    #cd clock;make;cd ..
+    #cd mount;make;cd ..
+}
+
+package() {
+    cd "${srcdir}/latte-applets"
+    make DESTDIR="${pkgdir}" install
+    #cd bonus
+    #cp pancake* "${pkgdir}/usr/bin"
+    #cd ..
+    #cd button ; make DESTDIR="${pkgdir}" install ; cd ..
+    #cd clock ; make DESTDIR="${pkgdir}" install ; cd ..
+    #cd mount ; make DESTDIR="${pkgdir}" install ; cd ..
+}

@@ -1,0 +1,27 @@
+--- PKGBUILD-bk	2016-12-05 23:41:41.000000000 +0300
++++ PKGBUILD	2017-02-01 21:10:52.708515097 +0300
+@@ -36,7 +36,7 @@
+ install=install
+ 
+ _kernmajor="$(pacman -Q linux | sed -r 's/linux ([0-9]*.[0-9]*).*/\1/')"
+-_kernver="$(</usr/lib/modules/extramodules-"$_kernmajor"-ARCH/version)"
++_kernver="$(pacman -Q linux | sed -r 's/linux ([0-9]*.[0-9]*.[0-9]*).*/\1/')"
+ 
+ prepare() {
+   patch -p1 -i license.patch
+@@ -49,12 +49,12 @@
+ }
+ 
+ build() {
+-  make -C /usr/lib/modules/${_kernver}/build M=`pwd`
++  make -C /usr/lib/modules/"$_kernver"-pf/build M=`pwd`
+ }
+ 
+ package() {
+-  install -Dm644 wl.ko "$pkgdir"/usr/lib/modules/extramodules-"$_kernmajor"-ARCH/wl.ko
+-  gzip                 "$pkgdir"/usr/lib/modules/extramodules-"$_kernmajor"-ARCH/wl.ko
++  install -Dm644 wl.ko "$pkgdir"/usr/lib/modules/extramodules-"$_kernmajor"-pf/wl.ko
++  gzip                 "$pkgdir"/usr/lib/modules/extramodules-"$_kernmajor"-pf/wl.ko
+ 
+   install -Dm644 lib/LICENSE.txt "$pkgdir"/usr/share/licenses/"$pkgname"/LICENSE
+   install -Dm644 modprobe.d "$pkgdir"/usr/lib/modprobe.d/broadcom-wl.conf

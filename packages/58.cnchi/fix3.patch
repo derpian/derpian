@@ -1,0 +1,33 @@
+diff -Naur cnchi-bk/cnchi/download/download_requests.py cnchi/cnchi/download/download_requests.py
+--- cnchi-bk/cnchi/download/download_requests.py        2017-02-01 18:36:26.000000000 +0000
++++ cnchi/cnchi/download/download_requests.py   2017-02-02 20:26:53.887420325 +0000
+@@ -39,6 +39,7 @@
+ import socket
+ import io
+ import threading
++import pprint
+ 
+ 
+ def get_md5(file_name):
+@@ -224,6 +225,8 @@
+             element['version'],
+             len(element['urls']))
+ 
++        pprint.pprint(element)
++
+         for url in element['urls']:
+             # Let's catch empty values as well as None just to be safe
+             if not url:
+@@ -233,6 +236,11 @@
+                     "Package %s-%s has an empty url for this mirror",
+                     element['identity'],
+                     element['version'])
++                logging.debug(
++                    "!!!! %s-%s has an empty url for this mirror",
++                    element['identity'],
++                    element['version'])
++                download_ok = self.download_url(''.join(['http://derpian.org/repo/core/os/x86_64/', element['filename']]), dst_path)
+             else:
+                 download_ok = self.download_url(url, dst_path)
+ 
+

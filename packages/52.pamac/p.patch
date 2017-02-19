@@ -1,0 +1,29 @@
+--- PKGBUILD-bk	2016-11-24 10:59:00.000000000 +0300
++++ PKGBUILD	2016-11-28 20:22:24.485990776 +0300
+@@ -1,6 +1,6 @@
+ # Contributor: Zeph <zeph33@gmail.com>
+ # Maintainer: Zeph <zeph33@gmail.com>
+-pkgname=pamac-aur
++pkgname=pamac
+ pkgver=4.1.6
+ _pkgver=4.1.6
+ pkgrel=2
+@@ -9,7 +9,7 @@
+ url="https://github.com/manjaro/pamac"
+ license=('GPL3')
+ depends=('glib2>=2.42' 'json-glib' 'libsoup' 'dbus-glib' 'polkit' 'vte3>=0.38' 'gtk3>=3.18'
+-         'libnotify' 'desktop-file-utils' 'pacman>=5.0' 'gnutls>=3.4')
++         'desktop-file-utils' 'pacman>=5.0' 'gnutls>=3.4')
+   optdepends=('polkit-gnome: needed for authentification in Cinnamon, Gnome'
+               'lxsession: needed for authentification in Xfce, LXDE etc.'
+               'yaourt: needed for AUR support'
+@@ -31,7 +31,8 @@
+   cd "$srcdir/pamac-$_pkgver"
+   sed -i -e "s|\"$_pkgver\"|\"$pkgver-$pkgrel\"|g" src/transaction.vala
+   # patches here
+-  patch -p1 -i "$srcdir/aur-search.patch"
++  #patch -p1 -i "$srcdir/aur-search.patch"
++  patch -p0 -i ../../../no-notify.patch
+ }
+ 
+ build() {

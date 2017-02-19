@@ -1,0 +1,20 @@
+--- PKGBUILD-bk	2016-12-08 01:02:11.476868632 +0300
++++ PKGBUILD	2016-12-08 01:02:49.943534820 +0300
+@@ -10,7 +10,7 @@
+ arch=('i686' 'x86_64')
+ license=('BSD')
+ url="http://opencv.org/"
+-depends=('intel-tbb' 'openexr' 'xine-lib' 'libdc1394' 'gtkglext')
++depends=('intel-tbb' 'openexr')
+ makedepends=('cmake' 'python-numpy' 'python2-numpy' 'mesa' 'eigen')
+ optdepends=('opencv-samples'
+             'eigen'
+@@ -28,7 +28,7 @@
+ _cmakeopts=('-D WITH_OPENCL=ON'
+             '-D WITH_OPENGL=ON'
+             '-D WITH_TBB=ON'
+-            '-D WITH_XINE=ON'
++            '-D WITH_XINE=OFF'
+             '-D WITH_GSTREAMER=OFF'
+             '-D BUILD_WITH_DEBUG_INFO=OFF'
+             '-D BUILD_TESTS=OFF'

@@ -1,0 +1,9 @@
+--- PKGBUILD-bk	2017-02-01 01:13:18.000000000 +0300
++++ PKGBUILD	2017-02-01 01:26:52.509832490 +0300
+@@ -24,4 +24,6 @@
+ package() {
+     cd "${srcdir}/${pkgname}-${pkgver}"
+     make DESTDIR="${pkgdir}" install
++mv -v "${pkgdir}/usr/share/icons/mate/24x24/places/start-here.png" "${pkgdir}/usr/share/icons/mate/24x24/places/start-here1.png"
++wget http://latte-desktop.org/coffee.png -O "${pkgdir}/usr/share/icons/mate/24x24/places/start-here.png"
+ }

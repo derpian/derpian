@@ -1,0 +1,26 @@
+--- PKGBUILD-bk	2016-12-08 00:09:51.000000000 +0300
++++ PKGBUILD	2016-12-08 00:10:47.046906990 +0300
+@@ -12,9 +12,8 @@
+ url=http://darktable.sf.net/
+ license=('GPL3')
+ depends=('exiv2>=0.18' 'lcms2' 'lensfun>=0.2.3' 'desktop-file-utils'
+-	 'curl' 'libsecret' 'libgphoto2' 'openexr' 'sqlite' 'libxslt'
+-	 'libsoup' 'gtk3' 'pugixml' 'json-glib' 'flickcurl' 'lua52'
+-	 'colord' 'colord-gtk' 'graphicsmagick')
++	 'curl' 'libsecret' 'openexr' 'sqlite' 'libxslt'
++	 'libsoup' 'gtk3' 'pugixml' 'json-glib')
+ makedepends=('intltool>=0.40' 'cmake' 'librsvg' 'osm-gps-map' 'libcups')
+ optdepends=('librsvg' 'osm-gps-map' 'libcups')
+ validpgpkeys=('C4CBC150699956E2A3268EF5BB5CC8295B1779C9')
+@@ -35,9 +34,9 @@
+       -DBINARY_PACKAGE_BUILD=1 \
+       -DBUILD_USERMANUAL=False \
+       -DUSE_LIBSECRET=On \
+-      -DUSE_LUA=On \
++      -DUSE_LUA=Off \
+       -DUSE_GNOME_KEYRING=Off \
+-      -DUSE_COLORD=On \
++      -DUSE_COLORD=Off \
+       -DPROJECT_VERSION=$pkgver \
+       ..
+   make

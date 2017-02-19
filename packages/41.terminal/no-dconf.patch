@@ -1,0 +1,56 @@
+diff -Naur mate-terminal-bk/configure.ac mate-terminal-1.16.1/configure.ac
+--- mate-terminal-bk/configure.ac	2016-10-10 17:54:04.000000000 +0300
++++ mate-terminal-1.16.1/configure.ac	2016-11-28 16:20:32.980352534 +0300
+@@ -48,7 +48,6 @@
+ GIO_REQUIRED=2.25.12
+ GTK_REQUIRED=3.14.0
+ VTE_REQUIRED=0.38
+-DCONF_REQUIRED=0.13.4
+ 
+ PKG_CHECK_MODULES([TERM],
+   [vte-2.91 >= $VTE_REQUIRED
+@@ -56,7 +55,6 @@
+    gthread-2.0
+    gio-2.0 >= $GIO_REQUIRED
+    gtk+-3.0 >= $GTK_REQUIRED
+-   dconf >= $DCONF_REQUIRED
+    x11])
+ 
+ # ********
+diff -Naur mate-terminal-bk/src/terminal-app.c mate-terminal-1.16.1/src/terminal-app.c
+--- mate-terminal-bk/src/terminal-app.c	2016-09-26 11:53:30.000000000 +0300
++++ mate-terminal-1.16.1/src/terminal-app.c	2016-11-28 16:21:23.568350878 +0300
+@@ -24,7 +24,6 @@
+ #include <errno.h>
+ 
+ #include <glib.h>
+-#include <dconf.h>
+ 
+ #include "terminal-intl.h"
+ 
+@@ -380,25 +379,6 @@
+ terminal_app_delete_profile (TerminalApp *app,
+                              TerminalProfile *profile)
+ {
+-	const char *profile_name;
+-	char *profile_dir;
+-	GError *error = NULL;
+-
+-	profile_name = terminal_profile_get_property_string (profile, TERMINAL_PROFILE_NAME);
+-	profile_dir = g_strconcat (CONF_PROFILE_PREFIX, profile_name, "/", NULL);
+-
+-	gsettings_remove_all_from_strv (app->settings_global, PROFILE_LIST_KEY, profile_name);
+-
+-	/* And remove the profile directory */
+-	DConfClient *client = dconf_client_new ();
+-	if (!dconf_client_write_sync (client, profile_dir, NULL, NULL, NULL, &error))
+-	{
+-		g_warning ("Failed to recursively unset %s: %s\n", profile_dir, error->message);
+-		g_error_free (error);
+-	}
+-
+-	g_object_unref (client);
+-	g_free (profile_dir);
+ }
+ 
+ static void

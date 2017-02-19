@@ -1,0 +1,35 @@
+_ver=1
+_pkgbase=latte-panel
+pkgname=${_pkgbase}
+pkgver=${_ver}.0
+pkgrel=1
+pkgdesc="The LATTE Panel"
+url="http://latte-desktop.org"
+arch=('i686' 'x86_64')
+license=('GPL')
+depends=('dbus-glib' 'libwnck3' 'libsm')
+makedepends=('intltool' 'itstool' 'gobject-introspection')
+source=('git+https://github.com/derpian/latte-panel.git')
+md5sums=('SKIP')
+
+build() {
+    cd "${srcdir}/latte-panel"
+    sh autogen.sh
+    ./configure \
+        --prefix=/usr \
+        --libexecdir=/usr/lib/${_pkgbase} \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --enable-introspection
+
+    #https://bugzilla.gnome.org/show_bug.cgi?id=656231
+    sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+    make
+}
+
+package() {
+    cd "${srcdir}/latte-panel"
+    make DESTDIR="${pkgdir}" install
+    rm -rf "$pkgdir/usr/share/mate-panel/layouts/default.layout"
+}

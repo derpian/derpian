@@ -1,0 +1,25 @@
+--- PKGBUILD	2017-02-17 04:43:44.000000000 +0300
++++ PKGBUILD	2017-02-17 04:58:43.806377442 +0300
+@@ -38,9 +38,7 @@
+   cd $pkgname
+ 
+   ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libexecdir=/usr/lib \
+-    --with-package-name="GStreamer Good Plugins (Arch Linux)" \
+-    --with-package-origin="http://www.archlinux.org/" \
+-    --enable-experimental --enable-gtk-doc --disable-static
++    --enable-experimental --disable-gtk-doc --disable-static --disable-extra-checks
+ 
+   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -48,11 +46,6 @@
+   make
+ }
+ 
+-check() {
+-  cd $pkgname
+-  make check
+-}
+-
+ package() {
+   cd $pkgname
+   make DESTDIR="$pkgdir" install

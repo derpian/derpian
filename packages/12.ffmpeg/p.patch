@@ -1,0 +1,61 @@
+--- PKGBUILD.orig	2016-11-24 22:19:10.000000000 +0300
++++ PKGBUILD	2016-11-24 22:22:53.909421873 +0300
+@@ -14,11 +14,11 @@
+ url='http://ffmpeg.org/'
+ license=('GPL3')
+ depends=('alsa-lib' 'bzip2' 'fontconfig' 'fribidi' 'glibc' 'gmp' 'gnutls' 'gsm'
+-         'jack' 'lame' 'libavc1394' 'libiec61883' 'libmodplug' 'libpulse'
+-         'libraw1394' 'libsoxr' 'libssh' 'libtheora' 'libva' 'libvdpau'
+-         'libwebp' 'libx11' 'libxcb' 'opencore-amr' 'openjpeg2' 'opus'
+-         'schroedinger' 'sdl2' 'speex' 'v4l-utils' 'xz' 'zlib'
+-         'libass.so' 'libbluray.so' 'libfreetype.so' 'libnetcdf.so'
++         'lame' 'libmodplug'
++         'libtheora' 'libva' 'libvdpau'
++         'libwebp' 'libx11' 'libxcb' 'opencore-amr' 'opus'
++         'speex' 'v4l-utils' 'xz' 'zlib'
++         'libass.so' 'libfreetype.so'
+          'libvidstab.so' 'libvorbisenc.so' 'libvorbis.so' 'libvpx.so'
+          'libx264.so' 'libx265.so' 'libxvidcore.so')
+ makedepends=('hardening-wrapper' 'ladspa' 'libvdpau' 'yasm')
+@@ -34,6 +34,7 @@
+ build() {
+   cd ffmpeg-${pkgver}
+ 
++sed -i 's|enable sdl|echo sdl|g;s|sdl-config|sdl-config1|g' configure
+   ./configure \
+     --prefix='/usr' \
+     --disable-debug \
+@@ -44,25 +45,25 @@
+     --enable-fontconfig \
+     --enable-gmp \
+     --enable-gnutls \
+-    --enable-gpl \
++    --enable-gpl --enable-nonfree \
+     --enable-ladspa \
+-    --enable-libass \
+-    --enable-libbluray \
++    --disable-libass \
++    --disable-libbluray \
+     --enable-libfreetype \
+     --enable-libfribidi \
+     --enable-libgsm \
+-    --enable-libiec61883 \
++    --disable-libiec61883 \
+     --enable-libmodplug \
+     --enable-libmp3lame \
+     --enable-libopencore_amrnb \
+     --enable-libopencore_amrwb \
+     --enable-libopenjpeg \
+     --enable-libopus \
+-    --enable-libpulse \
+-    --enable-libschroedinger \
+-    --enable-libsoxr \
++    --disable-libpulse \
++    --disable-libschroedinger \
++    --disable-libsoxr \
+     --enable-libspeex \
+-    --enable-libssh \
++    --disable-libssh \
+     --enable-libtheora \
+     --enable-libv4l2 \
+     --enable-libvidstab \

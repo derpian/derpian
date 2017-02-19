@@ -1,0 +1,15 @@
+--- PKGBUILD-bk	2016-11-28 20:47:07.000000000 +0300
++++ PKGBUILD	2016-11-28 20:50:08.485970083 +0300
+@@ -9,9 +9,9 @@
+ url="https://gstreamer.freedesktop.org/"
+ arch=(i686 x86_64)
+ license=(LGPL)
+-depends=(libpulse jack libsoup gst-plugins-base-libs wavpack aalib taglib libdv libshout libvpx
+-         gdk-pixbuf2 libcaca libavc1394 libiec61883 libxdamage v4l-utils cairo libgudev)
+-makedepends=(gstreamer speex flac libraw1394 python gtk-doc autoconf-archive git)
++depends=(libsoup gst-plugins-base-libs wavpack libvpx
++         gdk-pixbuf2 libxdamage v4l-utils cairo)
++makedepends=(gstreamer speex flac python gtk-doc autoconf-archive git)
+ options=(!emptydirs)
+ _commit=5670d66a53fac20d039c3a85a70b643fe9309fa7  # tags/1.10.1^0
+ source=("git://anongit.freedesktop.org/gstreamer/gst-plugins-good#commit=$_commit"

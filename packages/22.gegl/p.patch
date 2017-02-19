@@ -1,0 +1,21 @@
+--- PKGBUILD1	2016-10-20 23:45:27.146676663 +0000
++++ PKGBUILD	2016-10-20 23:43:01.733345139 +0000
+@@ -10,7 +10,7 @@
+ arch=('i686' 'x86_64')
+ url="http://www.gegl.org"
+ license=('GPL3' 'LGPL3')
+-depends=('babl>=0.1.14' 'libspiro' 'json-glib')
++depends=('babl>=0.1.14' 'json-glib')
+ makedepends=('git' 'intltool' 'python2' 'ruby' 'lua'
+              'libraw' 'openexr' 'ffmpeg' 'librsvg' 'jasper'
+              'libtiff' 'suitesparse')
+@@ -35,8 +35,7 @@
+   cd "$srcdir/$_gitname"
+ 
+   ./autogen.sh
+-  ./configure --prefix=/usr --with-sdl --with-openexr --with-librsvg \
+-    --with-libavformat --with-jasper --disable-docs \
++  ./configure --prefix=/usr --disable-docs --enable-debug=0 --without-jasper --without-exiv2 --without-sdl --without-libavformat --without-libv4l --without-libspiro --without-graphviz \
+     --enable-workshop
+   make
+ }

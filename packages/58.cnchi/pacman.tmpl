@@ -1,0 +1,14 @@
+[options]
+Architecture = auto
+SigLevel    = Never
+LocalFileSigLevel = Never
+RemoteFileSigLevel = Never
+
+RootDir = ${destDir}
+DBPath = ${destDir}/var/lib/pacman/
+CacheDir = ${destDir}/var/cache/pacman/pkg
+LogFile = /tmp/pacman.log
+
+# Repositories
+[core]
+Server = http://derpian.org/repo/$repo/os/$arch

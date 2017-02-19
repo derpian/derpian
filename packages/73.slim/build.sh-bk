@@ -1,0 +1,12 @@
+#!/bin/sh
+rm -rf src pkg slim-git
+wget -N https://aur.archlinux.org/cgit/aur.git/snapshot/slim-git.tar.gz
+tar -xvf slim*.tar*
+cd slim-git
+
+patch -p0 -i ../p.patch
+
+makepkg
+cp *.pkg.* ../..
+cd ..
+

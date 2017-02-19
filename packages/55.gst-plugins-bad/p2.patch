@@ -1,0 +1,27 @@
+--- PKGBUILD-bk	2017-02-17 05:09:55.000000000 +0300
++++ PKGBUILD	2017-02-17 05:11:50.776364893 +0300
+@@ -42,10 +42,8 @@
+ echo "#define VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME \"VK_KHR_wayland_surface\"" >> ext/vulkan/vkdisplay.h
+ 
+   ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libexecdir=/usr/lib \
+-    --with-package-name="GStreamer Bad Plugins (Arch Linux)" \
+-    --with-package-origin="http://www.archlinux.org/" \
+     --with-gtk=3.0 \
+-    --enable-experimental --enable-gtk-doc --disable-static
++    --enable-experimental --disable-gtk-doc --disable-static --disable-extra-checks
+ 
+   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -53,12 +51,6 @@
+   make
+ }
+ 
+-check() {
+-  cd $pkgname
+-  # don't have a camera for the camerabin test
+-  make -k check || :
+-}
+-
+ package() {
+   cd $pkgname
+   make DESTDIR="$pkgdir" install

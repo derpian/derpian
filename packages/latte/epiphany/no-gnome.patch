@@ -1,0 +1,1107 @@
+diff -Nuar epiphany-orig/configure.ac epiphany/configure.ac
+--- epiphany-orig/configure.ac	2016-11-28 16:41:52.000000000 +0300
++++ epiphany/configure.ac	2016-11-28 16:49:26.703295791 +0300
+@@ -75,12 +75,9 @@
+ LIBXSLT_REQUIRED=1.1.7
+ WEBKIT_GTK_REQUIRED=2.14.2
+ LIBSOUP_REQUIRED=2.48.0
+-GNOME_DESKTOP_REQUIRED=2.91.2
+ LIBSECRET_REQUIRED=0.14
+ GSETTINGS_DESKTOP_SCHEMAS_REQUIRED=0.0.1
+-LIBNOTIFY_REQUIRED=0.5.1
+ GCR_REQUIRED=3.5.5
+-AVAHI_REQUIRED=0.6.22
+ 
+ # Tests
+ 
+@@ -106,13 +103,9 @@
+ 		  webkit2gtk-4.0 >= $WEBKIT_GTK_REQUIRED
+ 		  libsoup-2.4 >= $LIBSOUP_REQUIRED
+ 		  libsecret-1 >= $LIBSECRET_REQUIRED
+-		  gnome-desktop-3.0 >= $GNOME_DESKTOP_REQUIRED
+ 		  gsettings-desktop-schemas >= $GSETTINGS_DESKTOP_SCHEMAS_REQUIRED
+-		  libnotify >= $LIBNOTIFY_REQUIRED
+ 		  sqlite3
+ 		  gcr-3 >= $GCR_REQUIRED
+-		  avahi-gobject >= $AVAHI_REQUIRED
+-		  avahi-client >= $AVAHI_REQUIRED
+ 		  ])
+ 
+ PKG_CHECK_MODULES([WEB_EXTENSION], [
+diff -Nuar epiphany-orig/lib/ephy-snapshot-service.c epiphany/lib/ephy-snapshot-service.c
+--- epiphany-orig/lib/ephy-snapshot-service.c	2016-11-28 16:41:52.000000000 +0300
++++ epiphany/lib/ephy-snapshot-service.c	2016-11-26 20:46:32.000000000 +0300
+@@ -24,17 +24,10 @@
+ #ifndef GNOME_DESKTOP_USE_UNSTABLE_API
+ #define GNOME_DESKTOP_USE_UNSTABLE_API
+ #endif
+-#include <libgnome-desktop/gnome-desktop-thumbnail.h>
+ #include <webkit2/webkit2.h>
+ 
+ struct _EphySnapshotService {
+   GObject parent_instance;
+-
+-  /* Disk cache */
+-  GnomeDesktopThumbnailFactory *factory;
+-
+-  /* Memory cache */
+-  GHashTable *cache;
+ };
+ 
+ G_DEFINE_TYPE (EphySnapshotService, ephy_snapshot_service, G_TYPE_OBJECT)
+@@ -59,102 +52,22 @@
+ static void
+ snapshot_path_cached_data_free (SnapshotPathCachedData *data)
+ {
+-  g_free (data->path);
+-  g_free (data);
+ }
+ 
+ static void
+ ephy_snapshot_service_class_init (EphySnapshotServiceClass *klass)
+ {
+-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+-
+-  /**
+-   * EphySnapshotService::snapshot-saved:
+-   * @url: the URL the snapshot was saved for
+-   * @mtime: the mtime embedded in the snapshot, needed to retrieve it
+-   *
+-   * The ::snapshot-saved signal is emitted when a new snapshot is saved.
+-   **/
+-  signals[SNAPSHOT_SAVED] = g_signal_new ("snapshot-saved",
+-                                          G_OBJECT_CLASS_TYPE (object_class),
+-                                          G_SIGNAL_RUN_LAST,
+-                                          0,
+-                                          NULL, NULL, NULL,
+-                                          G_TYPE_NONE,
+-                                          2,
+-                                          G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE,
+-                                          G_TYPE_INT64);
+ }
+ 
+ static void
+ ephy_snapshot_service_init (EphySnapshotService *self)
+ {
+-  self->factory = gnome_desktop_thumbnail_factory_new (GNOME_DESKTOP_THUMBNAIL_SIZE_LARGE);
+-  self->cache = g_hash_table_new_full (g_str_hash, g_str_equal,
+-                                       (GDestroyNotify)g_free,
+-                                       (GDestroyNotify)snapshot_path_cached_data_free);
+ }
+ 
+ static GdkPixbuf *
+ ephy_snapshot_service_prepare_snapshot (cairo_surface_t *surface,
+                                         cairo_surface_t *favicon)
+ {
+-  GdkPixbuf *snapshot, *scaled;
+-  int orig_width, orig_height;
+-  float orig_aspect_ratio, dest_aspect_ratio;
+-  int x_offset, new_width = 0, new_height;
+-
+-  orig_width = cairo_image_surface_get_width (surface);
+-  orig_height = cairo_image_surface_get_height (surface);
+-
+-  if (orig_width < EPHY_THUMBNAIL_WIDTH ||
+-      orig_height < EPHY_THUMBNAIL_HEIGHT) {
+-    snapshot = gdk_pixbuf_get_from_surface (surface,
+-                                            0, 0,
+-                                            orig_width, orig_height);
+-    scaled = gdk_pixbuf_scale_simple (snapshot,
+-                                      EPHY_THUMBNAIL_WIDTH,
+-                                      EPHY_THUMBNAIL_HEIGHT,
+-                                      GDK_INTERP_TILES);
+-  } else {
+-    orig_aspect_ratio = orig_width / (float)orig_height;
+-    dest_aspect_ratio = EPHY_THUMBNAIL_WIDTH / (float)EPHY_THUMBNAIL_HEIGHT;
+-
+-    if (orig_aspect_ratio > dest_aspect_ratio) {
+-      /* Wider than taller, crop the sides. */
+-      new_width = orig_height * dest_aspect_ratio;
+-      new_height = orig_height;
+-      x_offset = (orig_width - new_width) / 2;
+-    } else {
+-      /* Crop the bottom otherwise. */
+-      new_width = orig_width;
+-      new_height = orig_width / (float)dest_aspect_ratio;
+-      x_offset = 0;
+-    }
+-
+-    snapshot = gdk_pixbuf_get_from_surface (surface, x_offset, 0, new_width, new_height);
+-    scaled = gnome_desktop_thumbnail_scale_down_pixbuf (snapshot,
+-                                                        EPHY_THUMBNAIL_WIDTH,
+-                                                        EPHY_THUMBNAIL_HEIGHT);
+-  }
+-
+-  g_object_unref (snapshot);
+-
+-  x_offset = 6;
+-  if (favicon) {
+-    GdkPixbuf *fav_pixbuf;
+-    int favicon_size = 16;
+-    int y_offset = gdk_pixbuf_get_height (scaled) - favicon_size - x_offset;
+-
+-    fav_pixbuf = ephy_pixbuf_get_from_surface_scaled (favicon, favicon_size, favicon_size);
+-    gdk_pixbuf_composite (fav_pixbuf, scaled,
+-                          x_offset, y_offset, favicon_size, favicon_size,
+-                          x_offset, y_offset, 1, 1,
+-                          GDK_INTERP_NEAREST, 255);
+-    g_object_unref (fav_pixbuf);
+-  }
+-
+-  return scaled;
+ }
+ 
+ typedef struct {
+@@ -172,44 +85,16 @@
+                          time_t               mtime,
+                          const char          *url)
+ {
+-  SnapshotAsyncData *data;
+-
+-  data = g_slice_new0 (SnapshotAsyncData);
+-  data->service = g_object_ref (service);
+-  data->snapshot = snapshot ? g_object_ref (snapshot) : NULL;
+-  data->web_view = web_view;
+-  data->mtime = mtime;
+-  data->url = g_strdup (url);
+-
+-  if (web_view)
+-    g_object_add_weak_pointer (G_OBJECT (web_view), (gpointer *)&data->web_view);
+-
+-  return data;
+ }
+ 
+ static SnapshotAsyncData *
+ snapshot_async_data_copy (SnapshotAsyncData *data)
+ {
+-  SnapshotAsyncData *copy = snapshot_async_data_new (data->service,
+-                                                     data->snapshot,
+-                                                     data->web_view,
+-                                                     data->mtime,
+-                                                     data->url);
+-  return copy;
+ }
+ 
+ static void
+ snapshot_async_data_free (SnapshotAsyncData *data)
+ {
+-  g_clear_object (&data->service);
+-  g_clear_object (&data->snapshot);
+-
+-  if (data->web_view)
+-    g_object_remove_weak_pointer (G_OBJECT (data->web_view), (gpointer *)&data->web_view);
+-
+-  g_free (data->url);
+-
+-  g_slice_free (SnapshotAsyncData, data);
+ }
+ 
+ typedef struct {
+@@ -235,25 +120,11 @@
+                              const char           *path,
+                              EphySnapshotFreshness freshness)
+ {
+-  CacheData *data;
+-  data = g_new (CacheData, 1);
+-  data->cache = g_hash_table_ref (service->cache);
+-  data->url = g_strdup (url);
+-  data->data = g_new (SnapshotPathCachedData, 1);
+-  data->data->path = g_strdup (path);
+-  data->data->freshness = freshness;
+-  g_idle_add (idle_cache_snapshot_path, data);
+ }
+ 
+ static gboolean
+ idle_emit_snapshot_saved (gpointer user_data)
+ {
+-  SnapshotAsyncData *data = (SnapshotAsyncData *)user_data;
+-
+-  g_signal_emit (data->service, signals[SNAPSHOT_SAVED], 0, data->url, data->mtime);
+-
+-  snapshot_async_data_free (data);
+-  return G_SOURCE_REMOVE;
+ }
+ 
+ static void
+@@ -262,18 +133,6 @@
+                       SnapshotAsyncData   *data,
+                       GCancellable        *cancellable)
+ {
+-  char *path;
+-
+-  gnome_desktop_thumbnail_factory_save_thumbnail (service->factory,
+-                                                  data->snapshot,
+-                                                  data->url,
+-                                                  data->mtime);
+-  g_idle_add (idle_emit_snapshot_saved, snapshot_async_data_copy (data));
+-
+-  path = gnome_desktop_thumbnail_path_for_uri (data->url, GNOME_DESKTOP_THUMBNAIL_SIZE_LARGE);
+-  cache_snapshot_data_in_idle (service, data->url, path, SNAPSHOT_FRESH);
+-
+-  g_task_return_pointer (task, path, g_free);
+ }
+ 
+ static void
+@@ -285,19 +144,6 @@
+                                            GAsyncReadyCallback  callback,
+                                            gpointer             user_data)
+ {
+-  GTask *task;
+-
+-  g_return_if_fail (EPHY_IS_SNAPSHOT_SERVICE (service));
+-  g_return_if_fail (GDK_IS_PIXBUF (snapshot));
+-  g_return_if_fail (url != NULL);
+-
+-  task = g_task_new (service, cancellable, callback, user_data);
+-  g_task_set_priority (task, G_PRIORITY_LOW);
+-  g_task_set_task_data (task,
+-                        snapshot_async_data_new (service, snapshot, NULL, mtime, url),
+-                        (GDestroyNotify)snapshot_async_data_free);
+-  g_task_run_in_thread (task, (GTaskThreadFunc)save_snapshot_thread);
+-  g_object_unref (task);
+ }
+ 
+ static char *
+@@ -305,9 +151,6 @@
+                                             GAsyncResult        *result,
+                                             GError             **error)
+ {
+-  g_return_val_if_fail (g_task_is_valid (result, service), NULL);
+-
+-  return g_task_propagate_pointer (G_TASK (result), error);
+ }
+ 
+ 
+@@ -316,29 +159,12 @@
+                 GAsyncResult        *result,
+                 GTask               *task)
+ {
+-  char *path;
+-
+-  path = ephy_snapshot_service_save_snapshot_finish (service, result, NULL);
+-  g_task_return_pointer (task, path, g_free);
+-  g_object_unref (task);
+ }
+ 
+ static void
+ save_snapshot (cairo_surface_t *surface,
+                GTask           *task)
+ {
+-  SnapshotAsyncData *data = g_task_get_task_data (task);
+-
+-  data->snapshot = ephy_snapshot_service_prepare_snapshot (surface,
+-                                                           webkit_web_view_get_favicon (data->web_view));
+-
+-  ephy_snapshot_service_save_snapshot_async (g_task_get_source_object (task),
+-                                             data->snapshot,
+-                                             webkit_web_view_get_uri (data->web_view),
+-                                             data->mtime,
+-                                             g_task_get_cancellable (task),
+-                                             (GAsyncReadyCallback)snapshot_saved,
+-                                             task);
+ }
+ 
+ static void
+@@ -346,40 +172,11 @@
+                    GAsyncResult  *result,
+                    GTask         *task)
+ {
+-  cairo_surface_t *surface;
+-  GError *error = NULL;
+-
+-  surface = webkit_web_view_get_snapshot_finish (web_view, result, &error);
+-  if (error) {
+-    g_task_return_error (task, error);
+-    g_object_unref (task);
+-    return;
+-  }
+-
+-  save_snapshot (surface, task);
+-  cairo_surface_destroy (surface);
+ }
+ 
+ static gboolean
+ retrieve_snapshot_from_web_view (GTask *task)
+ {
+-  SnapshotAsyncData *data;
+-
+-  data = g_task_get_task_data (task);
+-  if (!data->web_view) {
+-    g_task_return_new_error (task,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR_WEB_VIEW,
+-                             "%s", "Error getting snapshot, web view was destroyed");
+-    g_object_unref (task);
+-    return FALSE;
+-  }
+-
+-  webkit_web_view_get_snapshot (data->web_view,
+-                                WEBKIT_SNAPSHOT_REGION_VISIBLE,
+-                                WEBKIT_SNAPSHOT_OPTIONS_NONE,
+-                                NULL, (GAsyncReadyCallback)on_snapshot_ready,
+-                                task);
+   return FALSE;
+ }
+ 
+@@ -387,11 +184,6 @@
+ webview_destroyed_cb (GtkWidget *web_view,
+                       GTask     *task)
+ {
+-  g_task_return_new_error (task,
+-                           EPHY_SNAPSHOT_SERVICE_ERROR,
+-                           EPHY_SNAPSHOT_SERVICE_ERROR_WEB_VIEW,
+-                           "%s", "Error getting snapshot, web view was destroyed");
+-  g_object_unref (task);
+ }
+ 
+ static void
+@@ -399,17 +191,6 @@
+                          WebKitLoadEvent load_event,
+                          GTask          *task)
+ {
+-  if (load_event != WEBKIT_LOAD_FINISHED)
+-    return;
+-
+-  /* Load finished doesn't ensure that we actually have visible content yet,
+-     so hold a bit before retrieving the snapshot. */
+-  g_idle_add ((GSourceFunc)retrieve_snapshot_from_web_view, task);
+-
+-  /* Some pages might end up causing this condition to happen twice, so remove
+-     the handler in order to avoid calling the above idle function twice. */
+-  g_signal_handlers_disconnect_by_func (web_view, webview_load_changed_cb, task);
+-  g_signal_handlers_disconnect_by_func (web_view, webview_destroyed_cb, task);
+ }
+ 
+ static gboolean
+@@ -419,49 +200,11 @@
+                         GError         *error,
+                         GTask          *task)
+ {
+-  g_signal_handlers_disconnect_by_func (web_view, webview_load_changed_cb, task);
+-  g_signal_handlers_disconnect_by_func (web_view, webview_load_failed_cb, task);
+-  g_signal_handlers_disconnect_by_func (web_view, webview_destroyed_cb, task);
+-  g_task_return_new_error (task,
+-                           EPHY_SNAPSHOT_SERVICE_ERROR,
+-                           EPHY_SNAPSHOT_SERVICE_ERROR_WEB_VIEW,
+-                           "Error getting snapshot, web view failed to load: %s",
+-                           error->message);
+-  g_object_unref (task);
+-
+-  return TRUE;
+ }
+ 
+ static gboolean
+ ephy_snapshot_service_take_from_webview (GTask *task)
+ {
+-  SnapshotAsyncData *data;
+-
+-  data = g_task_get_task_data (task);
+-  if (!data->web_view) {
+-    g_task_return_new_error (task,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR_WEB_VIEW,
+-                             "%s", "Error getting snapshot, web view was destroyed");
+-    g_object_unref (task);
+-    return FALSE;
+-  }
+-
+-  if (webkit_web_view_get_estimated_load_progress (WEBKIT_WEB_VIEW (data->web_view)) == 1.0)
+-    retrieve_snapshot_from_web_view (task);
+-  else {
+-    g_signal_connect_object (data->web_view, "destroy",
+-                             G_CALLBACK (webview_destroyed_cb),
+-                             task, 0);
+-    g_signal_connect_object (data->web_view, "load-changed",
+-                             G_CALLBACK (webview_load_changed_cb),
+-                             task, 0);
+-    g_signal_connect_object (data->web_view, "load-failed",
+-                             G_CALLBACK (webview_load_failed_cb),
+-                             task, 0);
+-  }
+-
+-  return FALSE;
+ }
+ 
+ GQuark
+@@ -492,24 +235,14 @@
+ ephy_snapshot_service_lookup_cached_snapshot_path (EphySnapshotService *service,
+                                                    const char          *url)
+ {
+-  SnapshotPathCachedData *data;
+-
+-  g_return_val_if_fail (EPHY_IS_SNAPSHOT_SERVICE (service), NULL);
+-
+-  data = g_hash_table_lookup (service->cache, url);
+-
+-  return data == NULL ? NULL : data->path;
++  return NULL;
+ }
+ 
+ static EphySnapshotFreshness
+ ephy_snapshot_service_lookup_snapshot_freshness (EphySnapshotService *service,
+                                                  const char          *url)
+ {
+-  SnapshotPathCachedData *data;
+-
+-  data = g_hash_table_lookup (service->cache, url);
+-
+-  return data == NULL ? SNAPSHOT_STALE : data->freshness;
++  return SNAPSHOT_STALE;
+ }
+ 
+ static void
+@@ -518,20 +251,6 @@
+                                   SnapshotAsyncData   *data,
+                                   GCancellable        *cancellable)
+ {
+-  char *path;
+-
+-  path = gnome_desktop_thumbnail_factory_lookup (service->factory, data->url, data->mtime);
+-  if (!path) {
+-    g_task_return_new_error (task,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR,
+-                             EPHY_SNAPSHOT_SERVICE_ERROR_NOT_FOUND,
+-                             "Snapshot for url \"%s\" not found in disk cache", data->url);
+-    return;
+-  }
+-
+-  cache_snapshot_data_in_idle (service, data->url, path, SNAPSHOT_STALE);
+-
+-  g_task_return_pointer (task, path, g_free);
+ }
+ 
+ void
+@@ -542,27 +261,6 @@
+                                                        GAsyncReadyCallback  callback,
+                                                        gpointer             user_data)
+ {
+-  GTask *task;
+-  const char *path;
+-
+-  g_return_if_fail (EPHY_IS_SNAPSHOT_SERVICE (service));
+-  g_return_if_fail (url != NULL);
+-
+-  task = g_task_new (service, cancellable, callback, user_data);
+-
+-  path = ephy_snapshot_service_lookup_cached_snapshot_path (service, url);
+-  if (path) {
+-    g_task_return_pointer (task, g_strdup (path), g_free);
+-    g_object_unref (task);
+-    return;
+-  }
+-
+-  g_task_set_priority (task, G_PRIORITY_LOW);
+-  g_task_set_task_data (task,
+-                        snapshot_async_data_new (service, NULL, NULL, mtime, url),
+-                        (GDestroyNotify)snapshot_async_data_free);
+-  g_task_run_in_thread (task, (GTaskThreadFunc)get_snapshot_path_for_url_thread);
+-  g_object_unref (task);
+ }
+ 
+ char *
+@@ -570,9 +268,6 @@
+                                                         GAsyncResult        *result,
+                                                         GError             **error)
+ {
+-  g_return_val_if_fail (g_task_is_valid (result, service), NULL);
+-
+-  return g_task_propagate_pointer (G_TASK (result), error);
+ }
+ 
+ static void
+@@ -580,25 +275,6 @@
+                            GAsyncResult        *result,
+                            GTask               *task)
+ {
+-  SnapshotAsyncData *data = g_task_get_task_data (task);
+-  char *path;
+-
+-  path = ephy_snapshot_service_get_snapshot_path_for_url_finish (service, result, NULL);
+-  if (path) {
+-    g_task_return_pointer (task, path, g_free);
+-    g_object_unref (task);
+-
+-    if (ephy_snapshot_service_lookup_snapshot_freshness (service, data->url) == SNAPSHOT_FRESH)
+-      return;
+-
+-    /* Take a fresh snapshot in the background. */
+-    task = g_task_new (service, NULL, NULL, NULL);
+-    g_task_set_task_data (task,
+-                          snapshot_async_data_copy (data),
+-                          (GDestroyNotify)snapshot_async_data_free);
+-  }
+-
+-  ephy_snapshot_service_take_from_webview (task);
+ }
+ 
+ void
+@@ -609,31 +285,6 @@
+                                                GAsyncReadyCallback  callback,
+                                                gpointer             user_data)
+ {
+-  GTask *task;
+-  const char *uri;
+-  const char *path;
+-
+-  g_return_if_fail (EPHY_IS_SNAPSHOT_SERVICE (service));
+-  g_return_if_fail (WEBKIT_IS_WEB_VIEW (web_view));
+-  g_return_if_fail (webkit_web_view_get_uri (web_view));
+-
+-  task = g_task_new (service, cancellable, callback, user_data);
+-
+-  uri = webkit_web_view_get_uri (web_view);
+-  path = ephy_snapshot_service_lookup_cached_snapshot_path (service, uri);
+-
+-  if (path) {
+-    g_task_return_pointer (task, g_strdup (path), g_free);
+-    g_object_unref (task);
+-  } else {
+-    g_task_set_task_data (task,
+-                          snapshot_async_data_new (service, NULL, web_view, mtime, uri),
+-                          (GDestroyNotify)snapshot_async_data_free);
+-    ephy_snapshot_service_get_snapshot_path_for_url_async (service,
+-                                                           uri, mtime, cancellable,
+-                                                           (GAsyncReadyCallback)got_snapshot_path_for_url,
+-                                                           task);
+-  }
+ }
+ 
+ char *
+@@ -641,7 +292,4 @@
+                                                 GAsyncResult        *result,
+                                                 GError             **error)
+ {
+-  g_return_val_if_fail (g_task_is_valid (result, service), NULL);
+-
+-  return g_task_propagate_pointer (G_TASK (result), error);
+ }
+diff -Nuar epiphany-orig/src/bookmarks/ephy-bookmarks.c epiphany/src/bookmarks/ephy-bookmarks.c
+--- epiphany-orig/src/bookmarks/ephy-bookmarks.c	2016-11-28 16:41:52.000000000 +0300
++++ epiphany/src/bookmarks/ephy-bookmarks.c	2016-11-26 20:59:09.000000000 +0300
+@@ -36,11 +36,7 @@
+ #include "ephy-signal-accumulator.h"
+ #include "ephy-tree-model-node.h"
+ 
+-#include <avahi-common/error.h>
+-#include <avahi-gobject/ga-client.h>
+-#include <avahi-gobject/ga-enums.h>
+-#include <avahi-gobject/ga-service-browser.h>
+-#include <avahi-gobject/ga-service-resolver.h>
++
+ #include <glib/gi18n.h>
+ #include <gtk/gtk.h>
+ #include <string.h>
+@@ -75,8 +71,6 @@
+ 
+   /* Local sites */
+   EphyNode *local;
+-  GaClient *ga_client;
+-  GaServiceBrowser *browse_handles[G_N_ELEMENTS (zeroconf_protos)];
+   GHashTable *resolve_handles;
+ };
+ 
+@@ -409,75 +403,6 @@
+   g_free (backup_filename);
+ }
+ 
+-/* C&P adapted from gnome-vfs-dns-sd.c */
+-static GHashTable *
+-decode_txt_record (AvahiStringList *input_text)
+-{
+-  GHashTable *hash;
+-  guint i;
+-  int len;
+-  char *key, *value, *end;
+-  char *key_dup, *value_dup;
+-  char *raw_txt;
+-  size_t raw_txt_len;
+-
+-  if (!input_text)
+-    return NULL;
+-
+-  raw_txt_len = avahi_string_list_serialize (input_text, NULL, 0);
+-  raw_txt = g_malloc (raw_txt_len);
+-  raw_txt_len = avahi_string_list_serialize (input_text, raw_txt, raw_txt_len);
+-
+-  if (raw_txt == NULL)
+-    return NULL;
+-
+-  hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+-
+-  i = 0;
+-  while (i < raw_txt_len) {
+-    len = raw_txt[i++];
+-
+-    if (i + len > raw_txt_len) {
+-      break;
+-    }
+-
+-    if (len == 0) {
+-      continue;
+-    }
+-
+-    key = &raw_txt[i];
+-    end = &raw_txt[i + len];
+-    i += len;
+-
+-    if (*key == '=') {
+-      /* 6.4 - silently ignore keys starting with = */
+-      continue;
+-    }
+-
+-    value = memchr (key, '=', len);
+-    if (value) {
+-      key_dup = g_strndup (key, value - key);
+-      value++;                   /* Skip '=' */
+-      value_dup = g_strndup (value, end - value);
+-    } else {
+-      key_dup = g_strndup (key, len);
+-      value_dup = NULL;
+-    }
+-    if (!g_hash_table_lookup_extended (hash,
+-                                       key_dup,
+-                                       NULL, NULL)) {
+-      g_hash_table_insert (hash,
+-                           key_dup,
+-                           value_dup);
+-    } else {
+-      g_free (key_dup);
+-      g_free (value_dup);
+-    }
+-  }
+-
+-  return hash;
+-}
+-
+ /* End of copied code */
+ 
+ static char *
+@@ -494,7 +419,6 @@
+ 
+ typedef struct {
+   EphyBookmarks *bookmarks;
+-  GaServiceResolver *resolver;
+   EphyNode *node;
+   char *name;
+   char *type;
+@@ -502,139 +426,8 @@
+ } ResolveData;
+ 
+ static void
+-resolver_found_cb (GaServiceResolver  *resolver,
+-                   int                 interface,
+-                   GaProtocol          protocol,
+-                   const char         *name,
+-                   const char         *type,
+-                   const char         *domain,
+-                   const char         *host_name,
+-                   const AvahiAddress *address,
+-                   guint16             port,
+-                   AvahiStringList    *txt,
+-                   glong               flags,
+-                   ResolveData        *data)
+-{
+-  EphyBookmarks *bookmarks = data->bookmarks;
+-  GValue value = { 0, };
+-  const char *path = NULL;
+-  char host[128];
+-  GHashTable *text_table;
+-  char *url;
+-  gboolean was_immutable;
+-  gboolean is_new_node = FALSE;
+-  guint i;
+-
+-  LOG ("resolver_found_cb resolver %p\n", resolver);
+-
+-  was_immutable = ephy_node_db_is_immutable (bookmarks->db);
+-  ephy_node_db_set_immutable (bookmarks->db, FALSE);
+-
+-  /* Find the protocol */
+-  for (i = 0; i < G_N_ELEMENTS (zeroconf_protos); ++i) {
+-    char proto[20];
+-
+-    g_snprintf (proto, sizeof (proto), "_%s._tcp", zeroconf_protos[i]);
+-    if (strcmp (type, proto) == 0) break;
+-  }
+-  if (i == G_N_ELEMENTS (zeroconf_protos)) return;
+-
+-  if (address == NULL) {
+-    g_warning ("Zeroconf failed to resolve host %s", name);
+-    return;
+-  }
+-
+-  text_table = decode_txt_record (txt);
+-
+-  if (text_table != NULL) {
+-    path = g_hash_table_lookup (text_table, "path");
+-  }
+-  if (path == NULL || path[0] == '\0') {
+-    path = "/";
+-  }
+-
+-  avahi_address_snprint (host, sizeof (host), address);
+-
+-  LOG ("0conf RESOLVED type=%s domain=%s name=%s => proto=%s host=%s port=%d path=%s\n",
+-       type, domain, name,
+-       zeroconf_protos[i], host, port, path);
+-
+-  was_immutable = ephy_node_db_is_immutable (bookmarks->db);
+-  ephy_node_db_set_immutable (bookmarks->db, FALSE);
+-
+-  if (data->node == NULL) {
+-    is_new_node = TRUE;
+-
+-    data->node = ephy_node_new (bookmarks->db);
+-    g_assert (data->node != NULL);
+-
+-    /* don't allow dragging this node */
+-    ephy_node_set_is_drag_source (data->node, FALSE);
+-
+-    g_value_init (&value, G_TYPE_STRING);
+-    g_value_take_string (&value,
+-                         get_id_for_response (data->type,
+-                                              data->domain,
+-                                              data->name));
+-    ephy_node_set_property (data->node, EPHY_NODE_BMK_PROP_SERVICE_ID, &value);
+-    g_value_unset (&value);
+-
+-    /* FIXME: limit length! */
+-    ephy_node_set_property_string (data->node,
+-                                   EPHY_NODE_BMK_PROP_TITLE,
+-                                   name);
+-
+-    ephy_node_set_property_boolean (data->node,
+-                                    EPHY_NODE_BMK_PROP_IMMUTABLE,
+-                                    TRUE);
+-  }
+-
+-  /* FIXME: limit length! */
+-  url = g_strdup_printf ("%s://%s:%d%s", zeroconf_protos[i], host, port, path);
+-
+-  g_value_init (&value, G_TYPE_STRING);
+-  g_value_take_string (&value, url);
+-  ephy_node_set_property (data->node, EPHY_NODE_BMK_PROP_LOCATION, &value);
+-  g_value_unset (&value);
+-
+-  if (is_new_node) {
+-    ephy_node_add_child (bookmarks->bookmarks, data->node);
+-    ephy_node_add_child (bookmarks->local, data->node);
+-  }
+-
+-  ephy_node_db_set_immutable (bookmarks->db, was_immutable);
+-
+-  if (text_table != NULL) {
+-    g_hash_table_unref (text_table);
+-  }
+-}
+-
+-static void
+-resolver_failure_cb (GaServiceResolver *resolver,
+-                     GError            *error,
+-                     ResolveData       *data)
+-{
+-  LOG ("resolver_failure_cb resolver %p: %s\n", resolver, error ? error->message : "(null)");
+-
+-  /* Remove the node, if present */
+-  if (data->node != NULL) {
+-    EphyBookmarks *bookmarks = data->bookmarks;
+-    gboolean was_immutable;
+-
+-    was_immutable = ephy_node_db_is_immutable (bookmarks->db);
+-    ephy_node_db_set_immutable (bookmarks->db, FALSE);
+-    ephy_node_unref (data->node);
+-    data->node = NULL;
+-    ephy_node_db_set_immutable (bookmarks->db, was_immutable);
+-  }
+-}
+-
+-static void
+ resolve_data_free (ResolveData *data)
+ {
+-  if (data->resolver)
+-    g_object_unref (data->resolver);
+-
+   g_free (data->type);
+   g_free (data->name);
+   g_free (data->domain);
+@@ -642,156 +435,8 @@
+ }
+ 
+ static void
+-browser_new_service_cb (GaServiceBrowser *browser,
+-                        int               interface,
+-                        GaProtocol        protocol,
+-                        const char       *name,
+-                        const char       *type,
+-                        const char       *domain,
+-                        glong             flags,
+-                        EphyBookmarks    *bookmarks)
+-{
+-  ResolveData *data;
+-  char *node_id;
+-  GError *error = NULL;
+-
+-  node_id = get_id_for_response (type, domain, name);
+-
+-  LOG ("0conf ADD: type=%s domain=%s name=%s\n",
+-       type, domain, name);
+-
+-  if (g_hash_table_lookup (bookmarks->resolve_handles, node_id) != NULL) {
+-    g_free (node_id);
+-    return;
+-  }
+-
+-  data = g_slice_new0 (ResolveData);
+-  data->bookmarks = bookmarks;
+-  data->node = NULL;
+-  data->type = g_strdup (type);
+-  data->name = g_strdup (name);
+-  data->domain = g_strdup (domain);
+-
+-  data->resolver = ga_service_resolver_new (AVAHI_IF_UNSPEC,
+-                                            AVAHI_PROTO_UNSPEC,
+-                                            name, type, domain,
+-                                            AVAHI_PROTO_UNSPEC,
+-                                            GA_LOOKUP_USE_MULTICAST);
+-  g_signal_connect (data->resolver, "found",
+-                    G_CALLBACK (resolver_found_cb), data);
+-  g_signal_connect (data->resolver, "failure",
+-                    G_CALLBACK (resolver_failure_cb), data);
+-  if (!ga_service_resolver_attach (data->resolver,
+-                                   bookmarks->ga_client,
+-                                   &error)) {
+-    g_warning ("Unable to resolve Zeroconf service %s: %s", name, error ? error->message : "(null)");
+-    g_clear_error (&error);
+-    resolve_data_free (data);
+-    g_free (node_id);
+-    return;
+-  }
+-
+-  g_hash_table_insert (bookmarks->resolve_handles,
+-                       node_id /* transfer ownership */, data);
+-}
+-
+-static void
+-browser_removed_service_cb (GaServiceBrowser *browser,
+-                            int               interface,
+-                            GaProtocol        protocol,
+-                            const char       *name,
+-                            const char       *type,
+-                            const char       *domain,
+-                            glong             flags,
+-                            EphyBookmarks    *bookmarks)
+-{
+-  char *node_id;
+-  ResolveData *data;
+-
+-  node_id = get_id_for_response (type, domain, name);
+-  data = g_hash_table_lookup (bookmarks->resolve_handles, node_id);
+-  /* shouldn't really happen, but let's play safe */
+-  if (!data) {
+-    g_free (node_id);
+-    return;
+-  }
+-
+-  if (data->node != NULL) {
+-    gboolean was_immutable;
+-
+-    was_immutable = ephy_node_db_is_immutable (bookmarks->db);
+-    ephy_node_db_set_immutable (bookmarks->db, FALSE);
+-    ephy_node_unref (data->node);
+-    data->node = NULL;
+-    ephy_node_db_set_immutable (bookmarks->db, was_immutable);
+-  }
+-
+-  g_hash_table_remove (bookmarks->resolve_handles, node_id);
+-  g_free (node_id);
+-}
+-
+-static void
+-start_browsing (GaClient      *ga_client,
+-                EphyBookmarks *bookmarks)
+-{
+-  guint i;
+-
+-  for (i = 0; i < G_N_ELEMENTS (zeroconf_protos); ++i) {
+-    GaServiceBrowser *browser = NULL;
+-    char proto[20];
+-
+-    g_snprintf (proto, sizeof (proto), "_%s._tcp", zeroconf_protos[i]);
+-
+-    browser = ga_service_browser_new (proto);
+-    g_signal_connect (browser, "new-service",
+-                      G_CALLBACK (browser_new_service_cb), bookmarks);
+-    g_signal_connect (browser, "removed-service",
+-                      G_CALLBACK (browser_removed_service_cb), bookmarks);
+-    if (!ga_service_browser_attach (browser,
+-                                    ga_client,
+-                                    NULL)) {
+-      g_warning ("Unable to start Zeroconf subsystem");
+-      g_object_unref (browser);
+-      return;
+-    }
+-
+-    bookmarks->browse_handles[i] = browser;
+-  }
+-}
+-
+-static void
+-ga_client_state_changed_cb (GaClient      *ga_client,
+-                            GaClientState  state,
+-                            EphyBookmarks *bookmarks)
+-{
+-  if (state == GA_CLIENT_STATE_FAILURE) {
+-    if (avahi_client_errno (ga_client->avahi_client) == AVAHI_ERR_DISCONNECTED) {
+-      g_object_unref (bookmarks->ga_client);
+-      bookmarks->ga_client = NULL;
+-
+-      ephy_local_bookmarks_start_client (bookmarks);
+-    }
+-  }
+-  if (state == GA_CLIENT_STATE_S_RUNNING) {
+-    start_browsing (ga_client, bookmarks);
+-  }
+-}
+-
+-static void
+ ephy_local_bookmarks_start_client (EphyBookmarks *bookmarks)
+ {
+-  GaClient *ga_client;
+-
+-  ga_client = ga_client_new (GA_CLIENT_FLAG_NO_FAIL);
+-  g_signal_connect (ga_client, "state-changed",
+-                    G_CALLBACK (ga_client_state_changed_cb),
+-                    bookmarks);
+-  if (!ga_client_start (ga_client, NULL)) {
+-    g_warning ("Unable to start Zeroconf subsystem");
+-    g_object_unref (ga_client);
+-    return;
+-  }
+-  bookmarks->ga_client = ga_client;
+ }
+ 
+ static void
+@@ -808,13 +453,6 @@
+ {
+   guint i;
+ 
+-  for (i = 0; i < G_N_ELEMENTS (zeroconf_protos); ++i) {
+-    if (bookmarks->browse_handles[i] != NULL) {
+-      g_object_unref (bookmarks->browse_handles[i]);
+-      bookmarks->browse_handles[i] = NULL;
+-    }
+-  }
+-
+   if (bookmarks->resolve_handles != NULL) {
+     g_hash_table_destroy (bookmarks->resolve_handles);
+     bookmarks->resolve_handles = NULL;
+@@ -825,10 +463,6 @@
+     bookmarks->local = NULL;
+   }
+ 
+-  if (bookmarks->ga_client != NULL) {
+-    g_object_unref (bookmarks->ga_client);
+-    bookmarks->ga_client = NULL;
+-  }
+ }
+ 
+ static void
+diff -Nuar epiphany-orig/src/ephy-main.c epiphany/src/ephy-main.c
+--- epiphany-orig/src/ephy-main.c	2016-11-28 16:41:52.000000000 +0300
++++ epiphany/src/ephy-main.c	2016-11-26 20:47:03.000000000 +0300
+@@ -34,7 +34,6 @@
+ #include <errno.h>
+ #include <glib/gi18n.h>
+ #include <gtk/gtk.h>
+-#include <libnotify/notify.h>
+ #include <libxml/xmlversion.h>
+ #include <string.h>
+ 
+@@ -260,7 +259,7 @@
+    */
+   LIBXML_TEST_VERSION;
+ 
+-  notify_init (PACKAGE);
++//  notify_init (PACKAGE);
+ 
+   /* If we're given -remote arguments, translate them */
+   if (argc >= 2 && strcmp (argv[1], "-remote") == 0) {
+@@ -500,8 +499,8 @@
+   g_free (desktop_file_basename);
+   g_free (profile_directory);
+ 
+-  if (notify_is_initted ())
+-    notify_uninit ();
++//  if (notify_is_initted ())
++//    notify_uninit ();
+ 
+   ephy_initial_state_save ();
+   ephy_settings_shutdown ();
+diff -Nuar epiphany-orig/src/window-commands.c epiphany/src/window-commands.c
+--- epiphany-orig/src/window-commands.c	2016-11-28 16:41:52.000000000 +0300
++++ epiphany/src/window-commands.c	2016-11-26 20:46:32.000000000 +0300
+@@ -53,7 +53,6 @@
+ #include <glib.h>
+ #include <glib/gi18n.h>
+ #include <gtk/gtk.h>
+-#include <libnotify/notify.h>
+ #include <libsoup/soup.h>
+ #include <string.h>
+ #include <webkit2/webkit2.h>
+@@ -656,17 +655,6 @@
+   ephy_web_view_get_web_app_title (data->view, NULL, fill_default_application_title_cb, data);
+ }
+ 
+-static void
+-notify_launch_cb (NotifyNotification *notification,
+-                  char               *action,
+-                  gpointer            user_data)
+-{
+-  char *desktop_file = user_data;
+-
+-  ephy_file_launch_desktop_file (desktop_file, NULL, 0, NULL);
+-  g_free (desktop_file);
+-}
+-
+ static gboolean
+ confirm_web_application_overwrite (GtkWindow *parent, const char *title)
+ {
+@@ -704,7 +692,6 @@
+   const char *app_name;
+   char *desktop_file;
+   char *message;
+-  NotifyNotification *notification;
+ 
+   if (response == GTK_RESPONSE_OK) {
+     app_name = gtk_entry_get_text (GTK_ENTRY (data->entry));
+@@ -727,24 +714,24 @@
+       message = g_strdup_printf (_("The application '%s' could not be created"),
+                                  app_name);
+ 
+-    notification = notify_notification_new (message,
+-                                            NULL, NULL);
++/*    notification = notify_notification_new (message,
++                                            NULL, NULL); */
+     g_free (message);
+ 
+     if (desktop_file) {
+-      notify_notification_add_action (notification, "launch", _("Launch"),
++/*      notify_notification_add_action (notification, "launch", _("Launch"),
+                                       (NotifyActionCallback)notify_launch_cb,
+                                       g_path_get_basename (desktop_file),
+                                       NULL);
+-      notify_notification_set_icon_from_pixbuf (notification, gtk_image_get_pixbuf (GTK_IMAGE (data->image)));
++      notify_notification_set_icon_from_pixbuf (notification, gtk_image_get_pixbuf (GTK_IMAGE (data->image))); */
+       g_free (desktop_file);
+     }
+ 
+-    notify_notification_set_timeout (notification, NOTIFY_EXPIRES_DEFAULT);
++/*    notify_notification_set_timeout (notification, NOTIFY_EXPIRES_DEFAULT);
+     notify_notification_set_urgency (notification, NOTIFY_URGENCY_LOW);
+     notify_notification_set_hint (notification, "desktop-entry", g_variant_new_string ("epiphany"));
+     notify_notification_set_hint (notification, "transient", g_variant_new_boolean (TRUE));
+-    notify_notification_show (notification, NULL);
++    notify_notification_show (notification, NULL); */
+   }
+ 
+   ephy_application_dialog_data_free (data);

@@ -1,0 +1,9 @@
+--- PKGBUILD-bk	2015-05-21 17:17:28.000000000 +0300
++++ PKGBUILD	2016-11-24 21:25:23.532798116 +0300
+@@ -42,4 +42,6 @@
+   cd "$pkgname-$pkgver"
+ 
+   RPM_BUILD_ROOT="$pkgdir/usr" sbindir="$pkgdir/usr/bin" libdir="$pkgdir/usr/lib" includedir="$pkgdir/usr/include" mandir="$pkgdir/usr/man" datadir="$pkgdir/usr/share" make install
++  mv "$pkgdir/usr/sbin/pump" "$pkgdir/usr/bin/pump"
++  rmdir "$pkgdir/usr/sbin"
+ }

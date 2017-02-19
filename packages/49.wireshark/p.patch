@@ -1,0 +1,43 @@
+--- PKGBUILD-bk	2016-11-28 15:29:30.432741686 +0000
++++ PKGBUILD	2016-11-28 15:47:34.676061536 +0000
+@@ -2,14 +2,14 @@
+ # Maintainer: Timothy Redaelli <timothy.redaelli@gmail.com>
+ # Contributor: Guillaume ALAUX <guillaume@archlinux.org>
+ # Contributor: Florian Pritz <bluewind at jabber dot ccc dot de>
+-pkgname=('wireshark-cli' 'wireshark-common' 'wireshark-gtk' 'wireshark-qt')
++pkgname=('wireshark-gtk')
+ pkgbase=wireshark
+ pkgver=2.2.2
+ pkgrel=1
+ arch=('i686' 'x86_64')
+ license=('GPL2')
+-makedepends=('c-ares' 'geoip' 'qt5-tools' 'qt5-multimedia' 'gtk3' 'krb5' 'libpcap' 'bash' 'libssh'
+-             'gnutls' 'portaudio' 'lua52' 'python' 'desktop-file-utils' 'hicolor-icon-theme')
++makedepends=('c-ares' 'geoip' 'gtk3' 'krb5' 'libpcap' 'bash' 'libssh'
++             'gnutls' 'lua52' 'python' 'desktop-file-utils' 'hicolor-icon-theme')
+ options=(!emptydirs)
+ url='https://www.wireshark.org/'
+ source=(https://www.wireshark.org/download/src/${pkgbase}-${pkgver}.tar.bz2
+@@ -30,12 +30,11 @@
+   ./autogen.sh
+   ./configure \
+       --prefix=/usr \
+-      --with-qt=5 \
+       --with-gtk3=yes \
+       --with-pcap \
+       --with-zlib \
+       --with-lua \
+-      --with-portaudio \
++      --with-portaudio=no \
+       --with-ssl \
+       --with-krb5 \
+       --with-c-ares \
+@@ -80,7 +79,7 @@
+ 
+ package_wireshark-gtk() {
+   pkgdesc='a free network protocol analyzer for Unix/Linux and Windows - GTK frontend'
+-  depends=('desktop-file-utils' 'gtk3' 'portaudio' 'wireshark-cli' 'wireshark-common')
++  depends=('desktop-file-utils' 'gtk3' 'wireshark-cli' 'wireshark-common')
+   replaces=(wireshark)
+   conflicts=(wireshark)
+ 
