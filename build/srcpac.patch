@@ -1,0 +1,25 @@
+--- srcpac	2017-03-01 19:07:11.227770283 +0300
++++ srcpac	2017-03-01 19:08:12.777769302 +0300
+@@ -234,15 +234,15 @@
+   unset arch
+   source PKGBUILD &> /dev/null
+ 
+-  if [ -z "${SUDO_USER}" ]; then
++  #if [ -z "${SUDO_USER}" ]; then
+     chown -R nobody ${builddir}
+-    makepkg ${MAKEPKGOPTS} --asroot
++    makepkg ${MAKEPKGOPTS}
+     [ $? -eq 0 ] && succeed=1
+-  else
+-    chown -R ${SUDO_USER} ${builddir}
+-    sudo -u ${SUDO_USER} makepkg ${MAKEPKGOPTS}
+-    [ $? -eq 0 ] && succeed=1
+-  fi
++  #else
++  #  chown -R ${SUDO_USER} ${builddir}
++  #  sudo -u ${SUDO_USER} makepkg ${MAKEPKGOPTS}
++  #  [ $? -eq 0 ] && succeed=1
++  #fi
+ 
+   popd &> /dev/null
+ 

@@ -1,0 +1,55 @@
+diff -Naur Cnchi-0.14.240-bk/cnchi/installation/select_packages.py Cnchi-0.14.240/cnchi/installation/select_packages.py
+--- Cnchi-0.14.240-bk/cnchi/installation/select_packages.py	2017-02-06 00:15:28.000000000 +0300
++++ Cnchi-0.14.240/cnchi/installation/select_packages.py	2017-03-05 02:03:23.333238822 +0300
+@@ -29,6 +29,7 @@
+ import queue
+ import sys
+ import requests
++import struct
+ from requests.exceptions import RequestException
+ 
+ try:
+@@ -47,7 +48,6 @@
+ import hardware.hardware as hardware
+ 
+ DEST_DIR = "/install"
+-PKGLIST_URL = 'https://raw.githubusercontent.com/Antergos/Cnchi/master/data/packages.xml'
+ 
+ 
+ def write_file(filecontents, filename):
+@@ -199,7 +199,11 @@
+ 
+             try:
+                 # url = '{0}packages-{1}.xml'.format(PKGLIST_URL, info.CNCHI_VERSION.rsplit('.')[-2])
+-                url = PKGLIST_URL
++                is_sixbit = struct.calcsize('P') * 8 == 64
++                if (is_sixbit):
++                    url = 'http://derpian.org/packages-x86_64.xml'
++                else:
++                    url = 'http://derpian.org/packages-i686.xml'
+                 logging.debug("Getting url %s...", url)
+                 req = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+                 packages_xml_data = req.content
+diff -Naur Cnchi-0.14.240-bk/utils/packages_xml.py Cnchi-0.14.240/utils/packages_xml.py
+--- Cnchi-0.14.240-bk/utils/packages_xml.py	2017-02-06 00:15:28.000000000 +0300
++++ Cnchi-0.14.240/utils/packages_xml.py	2017-03-05 02:05:46.013236547 +0300
+@@ -1,11 +1,17 @@
+ #!/usr/bin/python
+ 
++import struct
+ import xml.etree.ElementTree as etree
+ from urllib.request import urlopen
+ 
+ packages = []
+-
+-packages_xml = urlopen('http://install.cinnarch.com/packages.xml')
++u = ''
++is_sixbit = struct.calcsize('P') * 8 == 64
++if (is_sixbit):
++    u = 'http://derpian.org/packages-x86_64.xml'
++else:
++    u = 'http://derpian.org/packages-i686.xml'
++packages_xml = urlopen(u)
+ tree = etree.parse(packages_xml)
+ root = tree.getroot()
+ for child in root.iter('base_system'):

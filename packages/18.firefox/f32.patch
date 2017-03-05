@@ -1,0 +1,11 @@
+--- PKGBUILD	2017-03-02 07:41:59.000000000 +0300
++++ PKGBUILD	2017-03-02 07:49:53.657040547 +0300
+@@ -55,6 +55,8 @@
+   patch -Np1 -i ../rust-i686.patch
+ 
+   cat >.mozconfig <<END
++ac_add_options --target=i686-pc-linux-gnu
++ac_add_options --host=i686-pc-linux-gnu
+ ac_add_options --enable-application=browser
+ 
+ ac_add_options --prefix=/usr

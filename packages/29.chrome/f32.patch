@@ -1,0 +1,37 @@
+--- PKGBUILD-bk	2017-03-02 21:26:06.026259625 +0300
++++ PKGBUILD	2017-03-02 21:27:19.526258453 +0300
+@@ -24,7 +24,7 @@
+ _launcher_ver=3
+ pkgrel=1
+ pkgdesc="The open-source project behind Google Chrome (Dev Channel)"
+-arch=('i686' 'x86_64')
++arch=('i686')
+ url='http://www.chromium.org'
+ license=('BSD')
+ depends=('jsoncpp'
+@@ -129,7 +129,7 @@
+ # NOTE: These are for Arch Linux use ONLY. For your own distribution, please
+ # get your own set of keys. Feel free to contact foutrelis@archlinux.org for
+ # more information.
+-
++CARH="i686"
+ # Build NaCL?. disabled if detect 32bit system
+ if [ "${CARCH}" = "i686" ]; then
+   _build_nacl=0
+@@ -299,6 +299,7 @@
+ 
+ _flags=(
+   'is_debug=false'
++  'target_cpu="x86"'
+   'enable_widevine=true'
+   'enable_hangout_services_extension=false'
+   "ffmpeg_branding=\"ChromeOS\""
+@@ -383,6 +384,8 @@
+   export PATH="${srcdir}/python-path:$PATH"
+ 
+   cd "chromium-${pkgver}"
++  
++  patch -p0 -i ../../f33.patch
+ 
+   # Fix to save configuration in ~/.config/chromium-dev.
+   sed -e 's|filename = "chromium-browser"|filename = "chromium-dev"|' \

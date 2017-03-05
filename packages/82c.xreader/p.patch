@@ -1,0 +1,25 @@
+--- PKGBUILD-bk	2017-02-05 20:48:16.000000000 +0300
++++ PKGBUILD	2017-03-04 03:50:38.964513949 +0300
+@@ -8,7 +8,7 @@
+ arch=('i686' 'x86_64')
+ license=('GPL')
+ depends=('ghostscript' 'poppler-glib' 'djvulibre' 'desktop-file-utils'
+-    'gsettings-desktop-schemas' 'gtk3' 'gtk2' 'libsecret' 'libspectre' 'webkit2gtk')
++    'gsettings-desktop-schemas' 'gtk3' 'libsecret' 'libspectre')
+ makedepends=('git' 'mate-common' 'yelp-tools')
+ optdepends=('nemo: nemo extension (must be enabled at compile time)'
+     'caja-extensions-common: caja extension (must be enabled at compile time)'
+@@ -29,10 +29,12 @@
+ 
+ build() {
+     cd ${srcdir}/${pkgname}
++    sed -i 's|gtk+-x11-2.0|gtk+-x11-3.0|g' configure.ac
++    sed -i 's|gtk+-2.0|gtk+-3.0|g' configure.ac
+     ./autogen.sh --prefix="/usr" \
+          --localstatedir="/var" \
+          --libexecdir="/usr/lib/${_pkgbasename}" \
+-        --disable-caja --disable-nemo
++        --disable-caja --disable-nemo --disable-epub
+     make
+ }
+ 

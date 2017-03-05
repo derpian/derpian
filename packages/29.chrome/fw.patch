@@ -1,0 +1,26 @@
+--- PKGBUILD	2017-03-02 18:45:14.000000000 +0300
++++ PKGBUILD	2017-03-02 22:04:23.526222988 +0300
+@@ -545,10 +545,10 @@
+   ln -sf /usr/lib/chromium-dev/chromedriver "${pkgdir}/usr/bin/chromedriver-dev"
+ 
+   # Install libs.
+-  install -Dm755 libclearkeycdm.so "${pkgdir}/usr/lib/chromium-dev/libclearkeycdm.so"
+-  install -Dm755 libwidevinecdmadapter.so "${pkgdir}/usr/lib/chromium-dev/libwidevinecdmadapter.so"
+-  install -Dm644 natives_blob.bin "${pkgdir}/usr/lib/chromium-dev/natives_blob.bin"
+-  install -Dm644 snapshot_blob.bin "${pkgdir}/usr/lib/chromium-dev/snapshot_blob.bin"
++  install -Dm755 libclearkeycdm.so "${pkgdir}/usr/lib/chromium-dev/libclearkeycdm.so" || echo skip
++  install -Dm755 libwidevinecdmadapter.so "${pkgdir}/usr/lib/chromium-dev/libwidevinecdmadapter.so" || echo skip
++  install -Dm644 natives_blob.bin "${pkgdir}/usr/lib/chromium-dev/natives_blob.bin" || echo skip
++  install -Dm644 snapshot_blob.bin "${pkgdir}/usr/lib/chromium-dev/snapshot_blob.bin" || echo skip
+ 
+   # Install Resources.
+   _resources=(
+@@ -605,7 +605,7 @@
+       strip $STRIP_BINARIES "${pkgdir}/usr/lib/chromium-dev/"nacl_helper{,_bootstrap,_nonsfi}
+     fi
+     strip $STRIP_BINARIES "${pkgdir}/usr/lib/chromium-dev/"{chromium-dev,chrome-sandbox,chromedriver}
+-    strip $STRIP_SHARED "${pkgdir}/usr/lib/chromium-dev/"lib{widevinecdmadapter,clearkeycdm}.so
++    strip $STRIP_SHARED "${pkgdir}/usr/lib/chromium-dev/"lib{widevinecdmadapter,clearkeycdm}.so || echo skip
+   fi
+ 
+   # Try to fix libpng errors. (second attemp)

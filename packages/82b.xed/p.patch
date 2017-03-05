@@ -1,0 +1,26 @@
+--- PKGBUILD-bk	2017-03-04 03:15:17.044547785 +0300
++++ PKGBUILD	2017-03-04 03:18:09.764545031 +0300
+@@ -2,12 +2,12 @@
+ 
+ pkgname=xed-git
+ _pkgbasename=xed
+-pkgver=1.0.6.r0.g41fb3ba
++pkgver=1.2.2.r176.g99a730f
+ pkgrel=1
+ pkgdesc="A small and lightweight text editor. X-Apps Project (git version)."
+ arch=('i686' 'x86_64')
+ license=('GPL')
+-depends=('gtksourceview3' 'enchant' 'desktop-file-utils' 'libsm')
++depends=('gtksourceview3' 'desktop-file-utils' 'libsm' 'libpeas')
+ makedepends=('git' 'gnome-common' 'iso-codes')
+ provides=($_pkgname)
+ conflicts=(${_pkgbasename})
+@@ -24,7 +24,7 @@
+ 
+ build() {
+     cd ${srcdir}/${pkgname}
+-    ./autogen.sh --with-gtk=3.0 --prefix="/usr" \
++    ./autogen.sh --with-gtk=3.0 --disable-spell --prefix="/usr" \
+          --localstatedir="/var" \
+          --libexecdir="/usr/lib/xed"
+     make CFLAGS='-w -O2'

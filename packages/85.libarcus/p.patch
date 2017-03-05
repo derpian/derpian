@@ -1,0 +1,28 @@
+--- PKGBUILD-bk	2015-08-30 16:49:22.000000000 +0300
++++ PKGBUILD	2017-03-04 20:41:21.853546926 +0300
+@@ -9,7 +9,7 @@
+ license=('GPL2')
+ provides=('libarcus')
+ conflicts=('libarcus-git')
+-depends=('protobuf3')
++depends=()
+ makedepends=('git' 'cmake')
+ 
+ source=(
+@@ -63,14 +63,14 @@
+     cd "${srcdir}/${pkgname}/build"
+     make DESTDIR="$pkgdir/" install
+ 
+-    mv "$pkgdir/usr/local/lib64/" "$pkgdir/usr/lib/"
++    mv "$pkgdir/usr/local/lib64/" "$pkgdir/usr/lib/" || echo ok
+ }
+ 
+ package4release() {
+     cd "${srcdir}/libArcus-${pkgver}/build"
+     make DESTDIR="$pkgdir/" install
+ 
+-    mv "$pkgdir/usr/local/lib64/" "$pkgdir/usr/lib/"
++    mv "$pkgdir/usr/local/lib64/" "$pkgdir/usr/lib/" || echo ok
+ }
+ 
+ package() {

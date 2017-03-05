@@ -1,0 +1,11 @@
+--- PKGBUILD	2017-03-01 22:02:35.687602458 +0300
++++ PKGBUILD	2017-03-01 22:24:10.697581808 +0300
+@@ -33,7 +33,7 @@
+ build() {
+   cd ${srcdir}/mesa-${pkgver}
+ 
+-  ./configure --prefix=/usr \
++  ./configure --build=i686-pc-linux-gnu --host=i686-pc-linux-gnu --prefix=/usr \
+     --sysconfdir=/etc \
+     --with-dri-driverdir=/usr/lib/xorg/modules/dri \
+     --with-gallium-drivers=r300,r600,radeonsi,nouveau,svga,swrast,virgl \
