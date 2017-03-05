@@ -25,12 +25,12 @@ mkdir -p li/var/cache/pacman/pkg
 LD_LIBRARY_PATH=li-temp/usr/lib:$LD_LIBRARY_PATH ./li-temp/usr/bin/pacman --config li-temp/etc/pacman.conf -Sy -r li
 LD_LIBRARY_PATH=li-temp/usr/lib:$LD_LIBRARY_PATH ./li-temp/usr/bin/pacman --config li-temp/etc/pacman.conf -S bash pacman filesystem -r li --cachedir li/var/cache/pacman/pkg --noconfirm --force
 rm -rf li-temp
-cd li
+#cd li
 #patch -p0 -i ../pacman*.patch
-cd usr
-rm -rf local
-ln -s /usr local
-cd ..
-cd ..
+#cd usr
+#rm -rf local
+#ln -s /usr local
+#cd ..
+#cd ..
 rm li/dev/null
 echo ok

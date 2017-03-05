@@ -33,7 +33,7 @@ package() {
   cd ${pkgname}
   make DESTDIR="${pkgdir}" install
   install -D -m644 "${srcdir}/hardinfo.distro" "${pkgdir}/etc/hardinfo.distro"
-  mv "${pkgdir}/usr/lib64" "${pkgdir}/usr/lib"
+  mv "${pkgdir}/usr/lib64" "${pkgdir}/usr/lib" || echo skip
     mkdir -p "${pkgdir}/usr/share/applications"
     cp -v ../../hardinfo.desktop "${pkgdir}/usr/share/applications"
 }

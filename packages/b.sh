@@ -2,6 +2,7 @@ pacman -S links grep aria2 wget file base-devel abs --noconfirm
 #PACMAN fix
 sed -i 's|exit 1 # $E_USER_ABORT|# $E_USER_ABORT|g' /usr/bin/makepkg
 pacman -S lcms2 libpng bc libusb inetutils libpaper hicolor-icon-theme valgrind --noconfirm
+sed -i 's|exit 1 # $E_USER_ABORT|# $E_USER_ABORT|g' /usr/bin/makepkg
 ./x.sh 01.colord; pacman -U no-colord*.pkg.* --noconfirm
 ./x.sh 01b.sed; pacman -U sed*.pkg.* --noconfirm
 ./x.sh 02.cups; pacman -U libcups*.pkg.* --noconfirm
@@ -20,10 +21,10 @@ pacman -S libtiff giflib libxext libpng libjpeg-turbo --noconfirm
 pacman -S libwebp --noconfirm
 pacman -S python2-mako glproto libdrm dri2proto dri3proto --noconfirm
 pacman -S presentproto libxshmfence libxxf86vm libxdamage elfutils llvm libclc clang --noconfirm
-pacman -S libomxil-bellagio libvdpau libglvnd --noconfirm
+pacman -S libomxil-bellagio libvdpau --noconfirm
 ./x.sh 11.mesa
 pacman -U vulkan*.pkg* mesa*.pkg.* opencl-mesa*.pkg.* --noconfirm
-pacman -S libva-mesa-driver libgl-mesa --noconfirm
+pacman -S libva-mesa-driver mesa-libgl --noconfirm
 pacman -S libva libva-intel-driver libva-vdpau-driver --noconfirm
 pacman -S yasm alsa-lib gsm lame libass libtheora libvorbis v4l-utils libx264 xvidcore --noconfirm
 pacman -S netcdf opencore-amr openjpeg opus libmodplug libvpx x265 --noconfirm
@@ -149,6 +150,8 @@ pacman -S gmime libesmtp --noconfirm
 pacman -S polkit --noconfirm
 ./x.sh 52.pamac; pacman -U pamac*.pkg.* --noconfirm
 pacman -S libmad flac wavpack faad2 libcue gst-libav --noconfirm
+
+sh ./x.sh 52b.libva; pacman -U libva*.pkg.* --noconfirm
 ./x.sh 53.gst-plugins-base; pacman -U gst*.pkg.* --noconfirm
 ./x.sh 54.gst-plugins-good; pacman -U gst-plugins-good*.pkg.* --noconfirm
 pacman -S libsrtp rtmpdump libmms faac vulkan-headers vulkan-icd-loader --noconfirm
@@ -223,7 +226,9 @@ pacman -S asciidoc lsb-release --noconfirm
 ./x.sh 82.filesystem; pacman -U filesystem*pkg* --noconfirm
 #./x.sh 83.bwl
 
-pacman -S terminus-font lsof --noconfirm
+pacman -S terminus-font lsof libpeas --noconfirm
+./x.sh 82b.xed; pacman -U xed-git*.pkg.* --noconfirm
+./x.sh 82c.xreader; pacman -U xreader*.pkg.* --noconfirm
 
 sh ./x.sh latte/gnome-disk; cp -v latte/gnome-disk*.pkg.* . ; pacman -U gnome-disk*.pkg.* --noconfirm
 sh ./x.sh latte/libfmlt; cp -v latte/libfmlt*.pkg.* . ; pacman -U libfmlt*.pkg.* --noconfirm
@@ -247,7 +252,7 @@ sh ./x.sh latte/qinfo; cp -v latte/qinfo*.pkg.* . ; pacman -U qinfo*.pkg.* --noc
 #BUILD 32 bit lib((
 #pacman -R gcc dkms libreoffice-fresh-sdk clang spl spl-utils zfs-utils opencl-mesa --noconfirm
 pacman -S lib32-libxml2 lib32-expat lib32-libx11 lib32-libdrm lib32-libxshmfence lib32-libxxf86vm lib32-libxdamage lib32-libelf --no-confirm
-pacman -S lib32-llvm lib32-libvdpau lib32-libgcrypt lib32-libglvnd --noconfirm
+pacman -S lib32-llvm lib32-libvdpau lib32-libgcrypt --noconfirm
 
 printf "y\ny\ny\n"|pacman -S gcc-multilib gcc-libs-multilib
 ./x.sh 84.mesa32; pacman -U lib32* --noconfirm
@@ -297,9 +302,11 @@ sh ./x.sh 85.libarcus; pacman -U libarcus*.pkg.* --noconfirm
 sh ./x.sh 86.cura; pacman -U cura-eng*.pkg.* --noconfirm
 sh ./x.sh 87.host; pacman -U repetier-host*.pkg.* --noconfirm
 
-pacman -S afpfs-ng --noconfirm
+pacman -S afpfs-ng unichrome-dri sis-dri savage-dri --noconfirm
 
 sh ./x.sh 88.hydra; pacman -U hydra*.pkg.* --noconfirm
+
+#sh ./x.sh 89.libva; pacman -U libva*.pkg.* --noconfirm
 
 pacman -U linux*.pkg.* --noconfirm
 

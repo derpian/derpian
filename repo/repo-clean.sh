@@ -4,6 +4,8 @@ rm gtk2*
 rm seabios*
 
 rm *-dkms*
+rm abs*
+rm srcpac*
 rm spl*
 rm zfs*
 rm antergos*

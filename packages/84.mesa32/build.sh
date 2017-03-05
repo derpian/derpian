@@ -26,8 +26,8 @@ sed -i "s|'lib32-mesa-libgl'||g" PKGBUILD
 # sed -i '/vdpau\/libvdpau/d' PKGBUILD
 #patch -p0 -i ff.patch
 
-patch -p0 -i ff2.patch
-patch -p0 -i f.patch
+#patch -p0 -i ff2.patch
+#patch -p0 -i f.patch
 makepkg --skipinteg
 # --nodeps --skipinteg
 

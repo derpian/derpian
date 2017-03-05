@@ -24,7 +24,15 @@ sed -i "s|'mesa-libgl'||g" PKGBUILD
 #sed -i '/pipe_{}/d' PKGBUILD
 # sed -i '/vdpau\/libvdpau/d' PKGBUILD
 patch -p0 -i ff.patch
-patch -p0 -i ff2.patch
+
+ARC=$(cat /etc/pacman.conf|grep Architecture)
+
+if [[ $ARC == *"i686"* ]]; then
+  echo "FIX 32 bit"
+  patch -p0 -i f32.patch
+fi
+
+#patch -p0 -i ff2.patch
 makepkg --skipinteg
 # --nodeps --skipinteg
 

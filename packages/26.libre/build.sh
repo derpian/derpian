@@ -16,6 +16,14 @@ done
 
 patch -p0 -i p1.patch
 #sed -i "s/'beanshell'//g" PKGBUILD
+
+ARC=$(cat /etc/pacman.conf|grep Architecture)
+
+if [[ $ARC == *"i686"* ]]; then
+  echo "FIX 32 bit"
+  sed -i "s|./autogen.sh|./autogen.sh --build=i686-pc-linux-gnu --host=i686-pc-linux-gnu|g" PKGBUILD
+fi
+
 makepkg --skipinteg
 
 cp *pkg*xz ..

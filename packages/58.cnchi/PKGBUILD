@@ -2,7 +2,7 @@
 
 pkgname=cnchi
 _pkgname=Cnchi
-pkgver=0.14.227
+pkgver=0.14.240
 pkgrel=1
 pkgdesc='A modern, flexible system installer for Linux'
 arch=('any')
@@ -27,6 +27,7 @@ _monitored_repo='cnchi'
 package() {
 	cd "${srcdir}/${_pkgname}-${pkgver}"
 	patch -p1 -i ../../fix.patch
+	patch -p1 -i ../../fpkg.patch
 	patch -p1 -i ../../fix2.patch
         patch -p1 -i ../../fix3.patch
         patch -p1 -i ../../fix4.patch

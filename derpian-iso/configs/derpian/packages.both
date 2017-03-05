@@ -1,5 +1,4 @@
 abiword-minimal
-abs
 acl
 adwaita-icon-theme
 afpfs-ng
@@ -312,7 +311,6 @@ lib32-libdrm
 lib32-libelf
 lib32-libffi
 lib32-libgcrypt
-lib32-libglvnd
 lib32-libgpg-error
 lib32-libice
 lib32-libjpeg-turbo
@@ -392,7 +390,6 @@ libfontenc
 libgcrypt
 libgdiplus
 libgexiv2
-libglvnd
 libgpg-error
 libgsf
 libgssglue
@@ -431,6 +428,7 @@ libpagemaker
 libpaper
 libpcap
 libpciaccess
+libpeas
 libplist
 libpng
 libproxy
@@ -749,6 +747,7 @@ ruby
 run-parts
 rust
 sakura
+savage-dri
 scanmem
 scrnsaverproto
 sdl
@@ -762,6 +761,7 @@ serf
 shadow
 shared-mime-info
 simple-fb2-reader
+sis-dri
 slang
 slim
 smbclient
@@ -805,6 +805,7 @@ tzdata
 udis86
 udisks2
 uget
+unichrome-dri
 unicode-character-database
 unzip
 upower
@@ -853,6 +854,7 @@ xcb-util-renderutil
 xcb-util-wm
 xcmiscproto
 xdg-utils
+xed-git
 xextproto
 xf86dgaproto
 xf86driproto
@@ -931,6 +933,7 @@ xorg-xwininfo
 xorg-xwud
 xpad
 xproto
+xreader-git
 xtrans
 xvidcore
 xz

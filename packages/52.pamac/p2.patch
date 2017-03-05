@@ -1,12 +1,12 @@
---- PKGBUILD.orig	2017-01-11 15:49:17.000000000 +0300
-+++ PKGBUILD	2017-01-25 14:08:45.763452074 +0300
+--- PKGBUILD.orig	2017-03-02 12:10:44.000000000 +0300
++++ PKGBUILD	2017-03-03 14:59:50.175251441 +0300
 @@ -1,6 +1,6 @@
  # Contributor: Zeph <zeph33@gmail.com>
  # Maintainer: Zeph <zeph33@gmail.com>
 -pkgname=pamac-aur
 +pkgname=pamac
- pkgver=4.2.0
- _pkgver=4.2.0
+ pkgver=4.2.11
+ _pkgver=a00d5ca83c24b09eb3f2e5480e42a5358417e88c
  pkgrel=1
 @@ -9,7 +9,7 @@
  url="https://github.com/manjaro/pamac"
@@ -19,7 +19,7 @@
                'yaourt: needed for AUR support'
 @@ -29,6 +29,7 @@
    cd "$srcdir/pamac-$_pkgver"
-   sed -i -e "s|\"$_pkgver\"|\"$pkgver-$pkgrel\"|g" src/transaction.vala
+   sed -i -e "s|\"$pkgver\"|\"$pkgver-$pkgrel\"|g" src/transaction.vala
    # patches here
 +  patch -p0 -i ../../../no-notify.patch
  }

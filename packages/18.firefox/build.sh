@@ -12,9 +12,16 @@ done
 
 patch -p0 -i pp.patch
 patch -p0 -i px.patch
-patch -p0 -i pk.patch
+#patch -p0 -i pk.patch
 
 sed -i 's| gtk2 | |g' PKGBUILD
+
+ARC=$(cat /etc/pacman.conf|grep Architecture)
+
+if [[ $ARC == *"i686"* ]]; then
+  echo "FIX 32 bit"
+  patch -p0 -i f32.patch
+fi
 
 makepkg --skipinteg
 

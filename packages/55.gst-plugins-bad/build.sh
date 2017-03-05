@@ -13,6 +13,13 @@ done
 patch -p0 -i p.patch
 patch -p0 -i p2.patch
 
+ARC=$(cat /etc/pacman.conf|grep Architecture)
+
+if [[ $ARC == *"i686"* ]]; then
+  echo "FIX 32 bit"
+  sed -i "s|./configure|./configure --build=i686-pc-linux-gnu --host=i686-pc-linux-gnu|g" PKGBUILD
+fi
+
 makepkg
 
 cp *pkg*xz ..
