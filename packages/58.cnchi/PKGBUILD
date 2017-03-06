@@ -32,6 +32,8 @@ package() {
         patch -p1 -i ../../fix3.patch
         patch -p1 -i ../../fix4.patch
 
+find . -name '*.py' -type f -exec sed -i "s/antergos_grub/derpian_grub/g" {} \;
+
 find . -name '*.py' -type f -exec sed -i "s/'antergos'/'core'/g" {} \;
 find . -name '*.py' -type f -exec sed -i "s/cryptAntergos/cryptDerpian/g" {} \;
 find . -name '*.py' -type f -exec sed -i "s/AntergosVG/DerpianVG/g" {} \;
